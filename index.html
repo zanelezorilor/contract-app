@@ -882,7 +882,7 @@ async function genereazaPDFBlob(d) {
     if (pg > 0) doc.addPage();
     doc.setDrawColor(130, 80, 160); doc.setLineWidth(0.8);
     doc.line(marginSide, 8, pageW - marginSide, 8);
-    doc.addImage(LOGO_B64, 'PNG', marginSide, 9, 22, 22);
+    doc.addImage(LOGO_B64, 'PNG', marginSide, 9, 22, 22 * 149/165);
     const _cx = marginSide + 26 + (pageW - marginSide - 26 - marginSide) / 2;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(90, 40, 120);
     doc.text('ZANELE ZORILOR', _cx, 15, { align: 'center' });
