@@ -944,10 +944,7 @@ async function actualizeazaFisierDrive(fileId, blob, mimeType) {
 }
 
 async function upsertExcelInDrive(d) {
-  // Formatare dată ca dd.mm (ex: 13.06)
   const dataScurta = d.dataEveniment.replace(/^(\d{2})\.(\d{2})\.\d{4}$/, '$1.$2') || d.dataEveniment;
-
-  // Rândul nou — exact structura fișierului tău
   const randNou = [
     parseInt(d.nr) || d.nr,
     dataScurta,
@@ -957,26 +954,35 @@ async function upsertExcelInDrive(d) {
     parseFloat(d.valoare) || '',
     d.obs2,
   ];
-
   const mimeXlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-  let wb;
-  const fisierExistent = await cautaFisierInFolder(EXCEL_FILENAME);
 
-  if (fisierExistent) {
-    // Descarcă, adaugă rândul, suprascrie
-    const buf = await descarcaFisierDrive(fisierExistent.id);
-    wb = XLSX.read(buf, { type: 'array' });
+  // Încearcă să găsească ID-ul salvat local, altfel caută pe Drive
+  let fileId = localStorage.getItem('sv_excel_id');
+
+  if (!fileId) {
+    setStatus('genStatus', '⏳ Caută fișier Excel în Drive...', true);
+    const gasit = await cautaFisierInFolder(EXCEL_FILENAME);
+    if (gasit) {
+      fileId = gasit.id;
+      localStorage.setItem('sv_excel_id', fileId);
+    }
+  }
+
+  if (fileId) {
+    setStatus('genStatus', '⏳ Descarcă fișier Excel din Drive...', true);
+    const buf = await descarcaFisierDrive(fileId);
+    const wb = XLSX.read(buf, { type: 'array' });
     const wsName = wb.SheetNames[0];
     const data = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { header: 1 });
     data.push(randNou);
     wb.Sheets[wsName] = XLSX.utils.aoa_to_sheet(data);
-
     const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: mimeXlsx });
-    await actualizeazaFisierDrive(fisierExistent.id, blob, mimeXlsx);
+    setStatus('genStatus', '⏳ Salvează fișier Excel în Drive...', true);
+    await actualizeazaFisierDrive(fileId, blob, mimeXlsx);
     setStatus('genStatus', `✓ Contract nr. ${d.nr} adăugat în "${EXCEL_FILENAME}" pe Drive`, true);
   } else {
-    // Prima dată — crează fișier cu header-ul exact ca al tău
-    wb = XLSX.utils.book_new();
+    // Crează fișier nou
+    const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet([
       ['Nr crt', 'data eveniment', 'nume beneficiar', 'Tip eveniment', 'OBS', 'Tarif', 'obs 2'],
       randNou
@@ -984,7 +990,8 @@ async function upsertExcelInDrive(d) {
     ws['!cols'] = [8, 14, 30, 14, 25, 8, 35].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, 'Contracte 2026');
     const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: mimeXlsx });
-    await uploadToDrive(blob, EXCEL_FILENAME, mimeXlsx);
+    const result = await uploadToDrive(blob, EXCEL_FILENAME, mimeXlsx);
+    if (result?.id) localStorage.setItem('sv_excel_id', result.id);
     setStatus('genStatus', `✓ Fișier "${EXCEL_FILENAME}" creat în Drive cu contractul nr. ${d.nr}`, true);
   }
 }
