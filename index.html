@@ -928,6 +928,7 @@ async function descarcaFisierDrive(fileId) {
   const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
     headers: { Authorization: `Bearer ${driveToken}` }
   });
+  if (!resp.ok) throw new Error('Drive download failed: ' + resp.status);
   return await resp.arrayBuffer();
 }
 
@@ -937,7 +938,9 @@ async function actualizeazaFisierDrive(fileId, blob, mimeType) {
     headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': mimeType },
     body: blob,
   });
-  return await resp.json();
+  const data = await resp.json();
+  if (!resp.ok) throw new Error('Drive PATCH failed: ' + JSON.stringify(data));
+  return data;
 }
 
 async function upsertExcelInDrive(d) {
