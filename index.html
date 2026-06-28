@@ -197,11 +197,28 @@
     <h2>Serviciu & Locație</h2>
     <div class="grid-2">
       <div>
-        <label>Nr. zâne *</label>
-        <select id="nrZane" onchange="calcTarif()">
-          <option value="4">4 zâne</option>
-          <option value="6">6 zâne</option>
+        <label>Tip eveniment *</label>
+        <select id="tipEveniment" onchange="calcTarif()">
+          <option value="Botez">Botez</option>
+          <option value="Mot">Moț</option>
+          <option value="Mot + tava">Moț + tavă</option>
+          <option value="Nunta">Nuntă</option>
+          <option value="Nunta + instr.">Nuntă + instr.</option>
+          <option value="Nuntez">Nuntez</option>
         </select>
+      </div>
+      <div>
+        <label>Nr. zâne *</label>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
+          <select id="nrZane" onchange="calcTarif()" style="flex:1">
+            <option value="4">4 zâne</option>
+            <option value="6">6 zâne</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap;cursor:pointer">
+            <input type="checkbox" id="cuVioara" onchange="calcTarif()" style="width:18px;height:18px;cursor:pointer">
+            + Vioară (+600 RON)
+          </label>
+        </div>
       </div>
       <div>
         <label>Locația evenimentului *</label>
@@ -222,8 +239,12 @@
         <div class="tarif-box">
           <div class="label">TARIF CALCULAT</div>
           <div class="value" id="tarifAfișat">— RON</div>
-          <div class="sub" id="tarifSub">Selectează nr. zâne și introdu distanța</div>
+          <div class="sub" id="tarifSub">Selectează tip eveniment și introdu distanța</div>
         </div>
+      </div>
+      <div>
+        <label>Reducere (RON)</label>
+        <input id="reducereContract" type="number" placeholder="ex: 300" min="0" oninput="calcTarif()">
       </div>
     </div>
     <p id="distStatus" class="status"></p>
@@ -543,9 +564,22 @@ function fallbackDist(locatie, btn) {
 }
 
 // ─── CALCUL TARIF ────────────────────────────────────────────────────────────
+const BAZA_ZANE = { 4: 1200, 6: 1600 };
+const BAZA_EVENIMENT = {
+  'Botez': null,
+  'Mot': 900,
+  'Mot + tava': 1200,
+  'Nunta': 1800,
+  'Nunta + instr.': 2500,
+  'Nuntez': 1800,
+};
+
 function calcTarif() {
   const km = parseFloat(document.getElementById('kmDistanta').value);
   const zane = parseInt(document.getElementById('nrZane').value);
+  const tipEv = document.getElementById('tipEveniment').value;
+  const cuVioara = document.getElementById('cuVioara').checked;
+  const reducere = parseFloat(document.getElementById('reducereContract').value) || 0;
 
   if (isNaN(km) || km < 0) {
     document.getElementById('tarifAfișat').textContent = '— RON';
@@ -557,16 +591,28 @@ function calcTarif() {
 
   const tabel = TARIFE[zane];
   const rand = tabel.find(r => km <= r.max);
-  tarifBaza = rand ? rand.pret : tabel[tabel.length - 1].pret;
+  const kmPret = rand ? rand.pret : tabel[tabel.length - 1].pret;
 
-  let tarifFinal = tarifBaza;
-  let subText = `${zane} zâne · ${km} km de la Târgu Mureș`;
+  let baza;
+  if (tipEv === 'Botez') {
+    baza = kmPret;
+  } else {
+    const transportExtra = kmPret - BAZA_ZANE[zane];
+    baza = BAZA_EVENIMENT[tipEv] + transportExtra;
+  }
+
+  tarifBaza = baza + (cuVioara ? 600 : 0);
+  let tarifFinal = tarifBaza - reducere;
+
+  const tipLabel = tipEv === 'Botez' ? `Botez · ${zane} zâne` : `${tipEv} · ${zane} zâne`;
+  let subText = `${tipLabel}${cuVioara ? ' + vioară' : ''} · ${km} km de la București`;
+  if (reducere > 0) subText += ` · Reducere −${reducere} RON`;
 
   if (discountActiv) {
     const pct = parseFloat(document.getElementById('discountPct').value) || 0;
-    const reducere = Math.round(tarifBaza * pct / 100);
-    tarifFinal = tarifBaza - reducere;
-    subText += ` · Reducere ${pct}% (−${reducere} RON)`;
+    const redClient = Math.round(tarifBaza * pct / 100);
+    tarifFinal = tarifBaza - reducere - redClient;
+    subText += ` · Client fidel −${redClient} RON`;
   }
 
   document.getElementById('tarifAfișat').textContent = `${tarifFinal.toLocaleString('ro-RO')} RON`;
@@ -586,6 +632,8 @@ function getFormData() {
     dataEveniment: document.getElementById('dataEveniment').value || 'ZZ.LL.2026',
     locatie: document.getElementById('locatieEveniment').value || '...',
     nrZane: document.getElementById('nrZane').value,
+    tipEveniment: document.getElementById('tipEveniment').value,
+    cuVioara: document.getElementById('cuVioara').checked,
     valoare: document.getElementById('valoareContract').value || '...',
     dataPlata: document.getElementById('dataPlata').value || 'ZZ.LL.2026',
     obs: document.getElementById('obsContract').value || '',
@@ -625,7 +673,7 @@ Art. 3. VALOAREA CONTRACTULUI ȘI MODALITĂȚI DE PLATĂ
 
 Art. 4. OBLIGAȚIILE PĂRȚILOR
 4.1. PRESTATORUL se obligă:
-4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.nrZane} zâne, la ${d.locatie} în data de ${d.dataEveniment}.
+4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}, la ${d.locatie} în data de ${d.dataEveniment}.
 4.2. BENEFICIARUL se obligă:
 4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.
 4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.
@@ -700,7 +748,7 @@ function buildContractHTML(d) {
 
     <p><strong>Art. 4. OBLIGAȚIILE PĂRȚILOR</strong></p>
     <p>4.1. PRESTATORUL se obligă:</p>
-    <p>4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.nrZane} zâne, la ${d.locatie} în data de ${d.dataEveniment}.</p>
+    <p>4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}, la ${d.locatie} în data de ${d.dataEveniment}.</p>
     <p>4.2. BENEFICIARUL se obligă:</p>
     <p>4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.</p>
     <p>4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.</p>
@@ -949,7 +997,7 @@ async function upsertExcelInDrive(d) {
     parseInt(d.nr) || d.nr,
     dataScurta,
     d.numeBenef.toUpperCase(),
-    `${d.nrZane} zane`,
+    `${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}`,
     d.obs,
     parseFloat(d.valoare) || '',
     d.obs2,
