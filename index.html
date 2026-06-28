@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoulVibes – Generator Contracte 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDHd9BdaD9g-DLAvaKKA7jA7d1Ap4KBUig&libraries=places&callback=initMaps" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
+
+  header {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white; padding: 20px 32px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  header h1 { font-size: 22px; font-weight: 700; }
+  header span { font-size: 13px; opacity: .75; }
+
+  .container { max-width: 860px; margin: 32px auto; padding: 0 16px; }
+
+  .card {
+    background: white; border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    padding: 28px 32px; margin-bottom: 24px;
+  }
+  .card h2 { font-size: 15px; font-weight: 700; color: #7c3aed; margin-bottom: 20px;
+    text-transform: uppercase; letter-spacing: .5px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .full { grid-column: 1 / -1; }
+
+  label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
+    border-radius: 8px; font-size: 14px; transition: border-color .2s;
+    background: #fafafa;
+  }
+  input:focus, select:focus { outline: none; border-color: #7c3aed; background: white; }
+  input.error { border-color: #ef4444; }
+
+  .tarif-box {
+    background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+    border: 2px solid #7c3aed; border-radius: 10px;
+    padding: 16px 20px; margin-top: 8px;
+  }
+  .tarif-box .label { font-size: 12px; color: #7c3aed; font-weight: 600; }
+  .tarif-box .value { font-size: 28px; font-weight: 800; color: #5b21b6; }
+  .tarif-box .sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+  .dist-row { display: flex; gap: 10px; align-items: flex-end; }
+  .dist-row input { flex: 1; }
+  .btn-calc {
+    padding: 10px 16px; background: #7c3aed; color: white;
+    border: none; border-radius: 8px; cursor: pointer; font-size: 13px;
+    font-weight: 600; white-space: nowrap; transition: background .2s;
+  }
+  .btn-calc:hover { background: #6d28d9; }
+  .btn-calc:disabled { background: #c4b5fd; cursor: not-allowed; }
+
+  .discount-banner {
+    background: #fef3c7; border: 2px solid #f59e0b;
+    border-radius: 10px; padding: 14px 18px;
+    display: none; align-items: center; gap: 12px;
+  }
+  .discount-banner.visible { display: flex; }
+  .discount-banner .icon { font-size: 24px; }
+  .discount-banner strong { font-size: 14px; color: #92400e; }
+  .discount-banner p { font-size: 12px; color: #78350f; margin-top: 2px; }
+  .discount-input { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+  .discount-input input { width: 80px; }
+
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .btn {
+    flex: 1; min-width: 160px; padding: 13px 20px;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .2s; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: #7c3aed; color: white; }
+  .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+  .btn-secondary { background: #059669; color: white; }
+  .btn-secondary:hover { background: #047857; transform: translateY(-1px); }
+  .btn-outline { background: white; color: #7c3aed; border: 2px solid #7c3aed; }
+  .btn-outline:hover { background: #f3e8ff; }
+
+  .status { font-size: 13px; color: #6b7280; margin-top: 10px; text-align: center; }
+  .status.ok { color: #059669; }
+  .status.err { color: #ef4444; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; padding: 32px;
+    max-width: 440px; width: 90%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  }
+  .modal .icon { font-size: 48px; margin-bottom: 12px; }
+  .modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #7c3aed; }
+  .modal p { font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .modal .modal-actions { display: flex; gap: 10px; }
+  .modal .modal-actions .btn { font-size: 13px; padding: 10px 16px; }
+
+  .preview-section { margin-top: 12px; }
+  .preview-section summary { cursor: pointer; font-size: 13px; color: #7c3aed; font-weight: 600; }
+  #contractPreview {
+    margin-top: 12px; padding: 20px; background: #f8f7ff;
+    border: 1px solid #ddd6fe; border-radius: 8px;
+    font-size: 12px; line-height: 1.7; white-space: pre-wrap;
+    max-height: 300px; overflow-y: auto; color: #333;
+  }
+
+  @media (max-width: 600px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .full { grid-column: 1; }
+    .actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🌟 SoulVibes – Generator Contracte</h1>
+    <span>Zanele Zorilor · 2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- CLIENT -->
+  <div class="card">
+    <h2>Date Beneficiar</h2>
+    <div class="grid-2">
+      <div>
+        <label>Nume complet *</label>
+        <input id="numeBeneficiar" type="text" placeholder="ex: POPESCU MARIA"
+          oninput="checkClient(this.value)" autocomplete="off">
+      </div>
+      <div>
+        <label>Data nașterii</label>
+        <input id="dataNastere" type="text" placeholder="ZZ.LL.AAAA">
+      </div>
+      <div class="full">
+        <label>Adresă domiciliu</label>
+        <input id="adresaBeneficiar" type="text" placeholder="Str., nr., localitate, județ">
+      </div>
+    </div>
+
+    <!-- Banner client vechi -->
+    <div class="discount-banner" id="discountBanner">
+      <div class="icon">⭐</div>
+      <div>
+        <strong>Client fidel detectat!</strong>
+        <p id="discountMsg">Acest client a mai beneficiat de serviciile noastre.</p>
+        <div class="discount-input">
+          <label style="margin:0; white-space:nowrap;">Reducere (%):</label>
+          <input type="number" id="discountPct" value="10" min="0" max="50"
+            style="width:70px" oninput="calcTarif()">
+          <span style="font-size:12px; color:#92400e;">din tariful calculat</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTRACT -->
+  <div class="card">
+    <h2>Detalii Contract</h2>
+    <div class="grid-3">
+      <div>
+        <label>Nr. contract *</label>
+        <input id="nrContract" type="text" placeholder="ex: 26">
+      </div>
+      <div>
+        <label>Data contractului *</label>
+        <input id="dataContract" type="text" placeholder="ZZ.LL.2026">
+      </div>
+      <div>
+        <label>Data evenimentului *</label>
+        <input id="dataEveniment" type="text" placeholder="ZZ.LL.2026">
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICIU -->
+  <div class="card">
+    <h2>Serviciu & Locație</h2>
+    <div class="grid-2">
+      <div>
+        <label>Nr. zâne *</label>
+        <select id="nrZane" onchange="calcTarif()">
+          <option value="4">4 zâne</option>
+          <option value="6">6 zâne</option>
+        </select>
+      </div>
+      <div>
+        <label>Locația evenimentului *</label>
+        <div class="dist-row">
+          <input id="locatieEveniment" type="text" placeholder="ex: Cluj-Napoca"
+            oninput="resetDist()">
+          <button class="btn-calc" onclick="calcDistance()" id="btnCalc">
+            📍 Calculează distanța
+          </button>
+        </div>
+      </div>
+      <div>
+        <label>Distanță (km de la București)</label>
+        <input id="kmDistanta" type="number" placeholder="ex: 105"
+          oninput="calcTarif()" min="0">
+      </div>
+      <div>
+        <div class="tarif-box">
+          <div class="label">TARIF CALCULAT</div>
+          <div class="value" id="tarifAfișat">— RON</div>
+          <div class="sub" id="tarifSub">Selectează nr. zâne și introdu distanța</div>
+        </div>
+      </div>
+    </div>
+    <p id="distStatus" class="status"></p>
+  </div>
+
+  <!-- PLATĂ -->
+  <div class="card">
+    <h2>Plată</h2>
+    <div class="grid-2">
+      <div>
+        <label>Valoare contract (RON) *</label>
+        <input id="valoareContract" type="number" placeholder="Se completează automat" min="0">
+      </div>
+      <div>
+        <label>Data scadenței plății</label>
+        <input id="dataPlata" type="text" placeholder="ZZ.LL.2026">
+      </div>
+      <div>
+        <label>OBS (coloana E în Excel)</label>
+        <input id="obsContract" type="text" placeholder="ex: Reducere, Plătește pe Revolut...">
+      </div>
+      <div>
+        <label>OBS 2 (coloana G în Excel)</label>
+        <input id="obs2Contract" type="text" placeholder="ex: cash la eveniment / op / transfer">
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW + ACȚIUNI -->
+  <div class="card">
+    <h2>Generare</h2>
+
+    <details class="preview-section">
+      <summary>👁 Previzualizare contract</summary>
+      <div id="contractPreview">Completează formularul pentru previzualizare...</div>
+    </details>
+
+    <!-- Conectare Drive -->
+    <div style="margin-bottom:16px">
+      <button class="btn btn-outline" onclick="conectareDrive()" id="btnDrive" style="width:100%">
+        🔗 Conectează Google Drive
+      </button>
+      <p id="driveStatus" class="status"></p>
+    </div>
+
+    <div class="actions" style="margin-top:8px">
+      <button class="btn btn-primary" onclick="genereazaSiSalveaza('pdf')">
+        📄 Generează PDF → Drive
+      </button>
+      <button class="btn btn-secondary" onclick="genereazaSiSalveaza('excel')">
+        📊 Salvează Excel → Drive
+      </button>
+    </div>
+    <p id="genStatus" class="status"></p>
+  </div>
+
+</div>
+
+<!-- Modal client vechi -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="icon">⭐</div>
+    <h3>Client Fidel!</h3>
+    <p id="modalText"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal(false)">Nu acorda reducere</button>
+      <button class="btn btn-primary" onclick="closeModal(true)">✓ Acordă reducere</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATE TARIFARE ───────────────────────────────────────────────────────────
+const TARIFE = {
+  4: [
+    { max: 20,  pret: 1200 },
+    { max: 30,  pret: 1400 },
+    { max: 40,  pret: 1600 },
+    { max: 50,  pret: 1700 },
+    { max: 60,  pret: 1800 },
+    { max: 70,  pret: 1850 },
+    { max: 80,  pret: 1900 },
+    { max: 90,  pret: 1950 },
+    { max: 100, pret: 2000 },
+    { max: 110, pret: 2100 },
+    { max: 120, pret: 2200 },
+    { max: 130, pret: 2300 },
+    { max: 140, pret: 2400 },
+    { max: 150, pret: 2500 },
+    { max: 160, pret: 2600 },
+    { max: 170, pret: 2700 },
+    { max: 180, pret: 2800 },
+    { max: 190, pret: 2900 },
+    { max: 200, pret: 3000 },
+    { max: 210, pret: 3100 },
+    { max: 220, pret: 3200 },
+    { max: 230, pret: 3300 },
+    { max: 240, pret: 3400 },
+    { max: 250, pret: 3500 },
+    { max: Infinity, pret: 3700 },
+  ],
+  6: [
+    { max: 20,  pret: 1600 },
+    { max: 30,  pret: 1800 },
+    { max: 40,  pret: 2100 },
+    { max: 50,  pret: 2200 },
+    { max: 60,  pret: 2400 },
+    { max: 70,  pret: 2500 },
+    { max: 80,  pret: 2600 },
+    { max: 90,  pret: 2700 },
+    { max: 100, pret: 2800 },
+    { max: 110, pret: 3000 },
+    { max: 120, pret: 3100 },
+    { max: 130, pret: 3200 },
+    { max: 140, pret: 3300 },
+    { max: 150, pret: 3400 },
+    { max: 160, pret: 3600 },
+    { max: 170, pret: 3700 },
+    { max: 180, pret: 3800 },
+    { max: 190, pret: 3900 },
+    { max: 200, pret: 4000 },
+    { max: 210, pret: 4100 },
+    { max: 220, pret: 4200 },
+    { max: 230, pret: 4300 },
+    { max: 240, pret: 4400 },
+    { max: 250, pret: 4500 },
+    { max: Infinity, pret: 4700 },
+  ]
+};
+
+// ─── CLIENTI EXISTENȚI ───────────────────────────────────────────────────────
+const CLIENTI_EXISTENTI = [
+  "ADOMNICAI ANA MARIA",
+  "BUMBARA LIGIA - MARGARETA",
+  "CIOBANU PAULA",
+  "CREATIV IT MNG SRL",
+  "DRAGNE IOANA FLORINA",
+  "ELENA GRIGORE",
+  "FELBLUM ROBERT",
+  "GHIȚĂ MĂDĂLINA",
+  "IORDACHE GEORGIANA MIRELA",
+  "JINGA ALICE",
+  "LUNGU DANIELA",
+  "MIHALACHE SARA",
+  "NASTASE MIRUNA",
+  "NICA NICOLETA VALENTINA",
+  "NISTOR DRAGOMIRESCU MADALINA GABRIELA",
+  "PETRE MIHAELA",
+  "TABARCA OANA",
+  "TANASE MIRELA",
+  "TITA ROBERT",
+  "URMUZ NICOLETA-DANIELA",
+];
+
+const MAPS_KEY = "AIzaSyDHd9BdaD9g-DLAvaKKA7jA7d1Ap4KBUig";
+const ORIGINE = "București, Romania";
+
+let tarifBaza = 0;
+let discountActiv = false;
+
+// ─── VERIFICARE CLIENT ───────────────────────────────────────────────────────
+function normalizeaza(str) {
+  return str.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
+function checkClient(val) {
+  updatePreview();
+  if (val.length < 4) {
+    document.getElementById('discountBanner').classList.remove('visible');
+    discountActiv = false;
+    return;
+  }
+  const norm = normalizeaza(val);
+  const gasit = CLIENTI_EXISTENTI.find(c => normalizeaza(c).includes(norm) || norm.includes(normalizeaza(c).split(' ')[0]));
+  if (gasit) {
+    document.getElementById('discountBanner').classList.add('visible');
+    document.getElementById('discountMsg').textContent =
+      `"${gasit}" a mai beneficiat de serviciile noastre. Doriți să acordați o reducere?`;
+    document.getElementById('modalText').textContent =
+      `"${gasit}" este client fidel. Acordați o reducere pentru loialitate?`;
+    document.getElementById('modalOverlay').classList.add('visible');
+  } else {
+    document.getElementById('discountBanner').classList.remove('visible');
+    discountActiv = false;
+    calcTarif();
+  }
+}
+
+function closeModal(acorda) {
+  document.getElementById('modalOverlay').classList.remove('visible');
+  discountActiv = acorda;
+  if (!acorda) {
+    document.getElementById('discountBanner').classList.remove('visible');
+  }
+  calcTarif();
+}
+
+// ─── CALCUL DISTANȚĂ ─────────────────────────────────────────────────────────
+function resetDist() {
+  document.getElementById('distStatus').textContent = '';
+  updatePreview();
+}
+
+let mapsReady = false;
+function initMaps() { mapsReady = true; }
+
+// Fallback distanțe rutiere de la București (km) — folosit dacă Maps nu e gata
+const DISTANTE_RO = {
+  "alba iulia": 340, "alexandria": 87, "arad": 561, "bacău": 294, "baia mare": 541,
+  "bistrița": 451, "botoșani": 440, "brăila": 201, "brașov": 166, "bucurești": 0,
+  "buzău": 122, "călărași": 120, "cluj-napoca": 453, "cluj napoca": 453, "constanța": 225,
+  "craiova": 229, "deva": 453, "drobeta-turnu severin": 362, "drobeta turnu severin": 362,
+  "deva": 453, "drobeta": 362, "focșani": 198, "galați": 212, "giurgiu": 64,
+  "iași": 379, "iasi": 379, "miercurea ciuc": 282, "oradea": 607, "piatra neamț": 362,
+  "piatra neamt": 362, "pitești": 114, "pitesti": 114, "ploiești": 57, "ploiesti": 57,
+  "râmnicu vâlcea": 184, "ramnicu valcea": 184, "râmnicul vâlcea": 184,
+  "reșița": 504, "resita": 504, "satu mare": 581, "sfântu gheorghe": 238,
+  "sfantu gheorghe": 238, "sibiu": 278, "slatina": 167, "slobozia": 109,
+  "suceava": 435, "târgoviște": 82, "targoviste": 82, "târgu jiu": 272, "targu jiu": 272,
+  "târgu mureș": 301, "targu mures": 301, "târgu secuiesc": 255,
+  "timișoara": 564, "timisoara": 564, "tulcea": 290, "turnu măgurele": 140,
+  "urziceni": 64, "vaslui": 330, "victoria": 233, "zalău": 524, "zalau": 524,
+  "alexandria": 87, "adjud": 230, "agnita": 303, "aiud": 374, "aleșd": 567,
+  "băilești": 270, "balș": 210, "bârlad": 298, "barlad": 298, "bechet": 280,
+  "beiuș": 570, "blaj": 346, "bocșa": 520, "borșa": 518, "brad": 470,
+  "brănești": 25, "breaza": 95, "buftea": 22, "caransebeș": 517, "câmpina": 88,
+  "campina": 88, "câmpulung": 149, "campulung": 149, "câmpulung moldovenesc": 430,
+  "caracal": 195, "carei": 586, "cernavodă": 195, "chitila": 18, "codlea": 156,
+  "comarnic": 97, "comănești": 325, "copșa mică": 303, "cugir": 398,
+  "curtea de argeș": 159, "curtea de arges": 159, "dej": 470, "dorohoi": 462,
+  "dragașani": 198, "dragasani": 198, "drăgășani": 198, "fălticeni": 408,
+  "falticeni": 408, "fetești": 128, "fetesti": 128, "filiași": 248, "filiasi": 248,
+  "găești": 95, "gaesti": 95, "gheorgheni": 328, "gherla": 457, "ghimbav": 168,
+  "hârlău": 404, "harlau": 404, "hațeg": 443, "hateg": 443, "hunedoara": 450,
+  "huși": 317, "husi": 317, "ineu": 561, "lugoj": 539, "lupeni": 378,
+  "mangalia": 292, "medgidia": 231, "mediaș": 314, "medias": 314, "mioveni": 112,
+  "mizil": 78, "moldova nouă": 552, "moreni": 85, "motru": 295, "murfatlar": 224,
+  "năvodari": 242, "navodari": 242, "negru vodă": 283, "negrești-oaș": 594,
+  "odorheiu secuiesc": 292, "oltenița": 95, "oltenita": 95, "onești": 310,
+  "onesti": 310, "orăștie": 436, "orastie": 436, "orșova": 396, "orsova": 396,
+  "otopeni": 15, "pașcani": 382, "pascani": 382, "petrila": 389, "petroșani": 388,
+  "petrosani": 388, "popești-leordeni": 12, "predeal": 137, "radauti": 467,
+  "rădăuți": 467, "reghin": 318, "roșiorii de vede": 116, "rosiorii de vede": 116,
+  "roman": 334, "rovinari": 272, "rupea": 212, "săcele": 160, "sacele": 160,
+  "salonta": 591, "sannicolau mare": 587, "sebeș": 362, "sebes": 362,
+  "segarcea": 252, "sfântu gheorghe": 238, "sighetul marmației": 565,
+  "sighișoara": 283, "sighisoara": 283, "sinaia": 119, "siret": 448,
+  "sovata": 310, "ștei": 565, "strehaia": 315, "tecuci": 248, "toplița": 363,
+  "toplita": 363, "turda": 425, "turnu măgurele": 140, "turnu magurele": 140,
+  "urlați": 72, "urlati": 72, "vatra dornei": 435, "vicovu de sus": 470,
+  "videle": 78, "vișeu de sus": 536, "viseu de sus": 536, "vlăhița": 298,
+  "voluntari": 10, "vulcan": 385, "zimnicea": 107,
+};
+
+function calcDistance() {
+  const locatie = document.getElementById('locatieEveniment').value.trim();
+  if (!locatie) { alert('Introduceți localitatea!'); return; }
+
+  const btn = document.getElementById('btnCalc');
+  btn.disabled = true;
+  btn.textContent = '⏳ Se calculează...';
+  document.getElementById('distStatus').textContent = '';
+
+  // Folosim Google Maps Distance Matrix dacă e gata
+  if (mapsReady && window.google && google.maps) {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix({
+      origins: [ORIGINE],
+      destinations: [locatie + ', Romania'],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    }, (response, status) => {
+      btn.disabled = false;
+      btn.textContent = '📍 Calculează distanța';
+
+      if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+        const el = response.rows[0].elements[0];
+        const km = Math.round(el.distance.value / 1000);
+        document.getElementById('kmDistanta').value = km;
+        document.getElementById('distStatus').textContent = `✓ ${km} km de la București · ${el.duration.text} cu mașina (Google Maps)`;
+        document.getElementById('distStatus').className = 'status ok';
+        calcTarif();
+      } else {
+        fallbackDist(locatie, btn);
+      }
+    });
+  } else {
+    fallbackDist(locatie, btn);
+  }
+}
+
+function fallbackDist(locatie, btn) {
+  btn.disabled = false;
+  btn.textContent = '📍 Calculează distanța';
+
+  const cheie = locatie.toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/ș|ş/g,'s').replace(/ț|ţ/g,'t').replace(/ă/g,'a').replace(/î|â/g,'i');
+
+  let km = null, gasit = '';
+  for (const [oras, dist] of Object.entries(DISTANTE_RO)) {
+    const n = oras.normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/ș|ş/g,'s').replace(/ț|ţ/g,'t').replace(/ă/g,'a').replace(/î|â/g,'i');
+    if (n === cheie || n.startsWith(cheie) || cheie.startsWith(n)) { km = dist; gasit = oras; break; }
+  }
+
+  if (km !== null) {
+    document.getElementById('kmDistanta').value = km;
+    document.getElementById('distStatus').textContent = `✓ ${km} km de la București (${gasit})`;
+    document.getElementById('distStatus').className = 'status ok';
+    calcTarif();
+  } else {
+    document.getElementById('distStatus').textContent = `⚠ "${locatie}" negăsit. Introduceți km manual.`;
+    document.getElementById('distStatus').className = 'status err';
+  }
+}
+
+// ─── CALCUL TARIF ────────────────────────────────────────────────────────────
+function calcTarif() {
+  const km = parseFloat(document.getElementById('kmDistanta').value);
+  const zane = parseInt(document.getElementById('nrZane').value);
+
+  if (isNaN(km) || km < 0) {
+    document.getElementById('tarifAfișat').textContent = '— RON';
+    document.getElementById('tarifSub').textContent = 'Introduceți distanța în km';
+    tarifBaza = 0;
+    updatePreview();
+    return;
+  }
+
+  const tabel = TARIFE[zane];
+  const rand = tabel.find(r => km <= r.max);
+  tarifBaza = rand ? rand.pret : tabel[tabel.length - 1].pret;
+
+  let tarifFinal = tarifBaza;
+  let subText = `${zane} zâne · ${km} km de la Târgu Mureș`;
+
+  if (discountActiv) {
+    const pct = parseFloat(document.getElementById('discountPct').value) || 0;
+    const reducere = Math.round(tarifBaza * pct / 100);
+    tarifFinal = tarifBaza - reducere;
+    subText += ` · Reducere ${pct}% (−${reducere} RON)`;
+  }
+
+  document.getElementById('tarifAfișat').textContent = `${tarifFinal.toLocaleString('ro-RO')} RON`;
+  document.getElementById('tarifSub').textContent = subText;
+  document.getElementById('valoareContract').value = tarifFinal;
+  updatePreview();
+}
+
+// ─── PREVIEW TEXT ─────────────────────────────────────────────────────────────
+function getFormData() {
+  return {
+    nr: document.getElementById('nrContract').value || 'XX',
+    dataContract: document.getElementById('dataContract').value || 'ZZ.LL.2026',
+    numeBenef: document.getElementById('numeBeneficiar').value || '...',
+    adresaBenef: document.getElementById('adresaBeneficiar').value || '...',
+    dataNastere: document.getElementById('dataNastere').value || 'ZZ.LL.AAAA',
+    dataEveniment: document.getElementById('dataEveniment').value || 'ZZ.LL.2026',
+    locatie: document.getElementById('locatieEveniment').value || '...',
+    nrZane: document.getElementById('nrZane').value,
+    valoare: document.getElementById('valoareContract').value || '...',
+    dataPlata: document.getElementById('dataPlata').value || 'ZZ.LL.2026',
+    obs: document.getElementById('obsContract').value || '',
+    obs2: document.getElementById('obs2Contract').value || '',
+  };
+}
+
+function updatePreview() {
+  const d = getFormData();
+  document.getElementById('contractPreview').textContent = buildContractText(d);
+}
+
+function buildContractText(d) {
+  return `CONTRACT DE PRESTĂRI SERVICII
+NR. ${d.nr}/ ${d.dataContract}
+
+Încheiat între părțile:
+
+SOULVIBES SRL cu sediul în județul Mureș, localitatea Târgu Mureș, Str. Pandurilor nr. 27, ap. 5, înregistrată la Registrul Comerțului sub nr. J26/1974/2017, cod fiscal 38467683, cont nr. RO83 INGB 0000 9999 0739 3339 deschis la ING BANK, reprezentată de Andrea Bartha în calitate de Administrator, denumit în continuare PRESTATOR,
+
+și
+
+PERSOANA FIZICĂ – ${d.numeBenef}, cu domiciliul în ${d.adresaBenef}, născut la data ${d.dataNastere}, numit în continuare BENEFICIAR.
+
+s-a încheiat prezentul contract în următoarele condiții:
+
+Art. 1. OBIECTUL CONTRACTULUI
+1.1. Obiectul prezentului contract constă în angajarea de către Beneficiar a Prestatorului, în vederea prestării de servicii tip organizare de eveniment, prin susținerea unui program artistic, în locația stabilită de către Beneficiar.
+
+Art. 2. DURATA CONTRACTULUI
+2.1. Prezentul contract are valabilitate până în data ${d.dataEveniment} sau până după prestarea serviciilor care fac obiectul contractului, menționate în art. 1.1.
+
+Art. 3. VALOAREA CONTRACTULUI ȘI MODALITĂȚI DE PLATĂ
+3.1. Valoarea totală a contractului este de ${d.valoare} RON.
+3.2. Plata se va face prin virament bancar în contul RO83 INGB 0000 9999 0739 3339 deschis la ING BANK până în data de ${d.dataPlata}.
+3.3. În cazul în care BENEFICIARUL nu va efectua plata în condițiile și la termenul prevăzut în art. 3.2, acesta va plăti penalități de întârziere de 0,1% din valoarea contractului/zi de întârziere.
+
+Art. 4. OBLIGAȚIILE PĂRȚILOR
+4.1. PRESTATORUL se obligă:
+4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.nrZane} zâne, la ${d.locatie} în data de ${d.dataEveniment}.
+4.2. BENEFICIARUL se obligă:
+4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.
+4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.
+4.2.3. Să nu aducă modificări în desfășurătorul evenimentului fără o notificare prealabilă adresată PRESTATORULUI, cu cel puțin 2 zile înainte de data stabilită pentru desfășurarea evenimentului.
+4.2.4. Să nu reprogrameze evenimentul fără informarea prealabilă a PRESTATORULUI și să acționeze astfel încât ambele părți să poată semna un act adițional la prezentului contract în vederea reprogramării.
+4.2.5. Să achite contravaloarea serviciilor PRESTATORULUI, în conformitate cu dispozițiile art. 3.
+4.2.6. Să achite orice altă taxă, tarif sau cheltuială aferentă organizării și desfășurării în condiții legale a evenimentului.
+
+Art. 5. ÎNCETAREA CONTRACTULUI
+5.1. Prezentul contract încetează la expirarea termenului pentru care a fost încheiat, conform art. 2 de mai sus.
+5.2. Contractul poate înceta prin acordul părților în acest sens.
+5.3. În caz de neexecutare ori executare defectuoasă a vreuneia dintre obligațiile stipulate la art. 4.2 în sarcina Beneficiarului, contractul va fi încetat de plin drept fără a mai fi necesară intervenția vreunei instanțe judecătorești, la simpla notificare a Beneficiarului.
+5.4. Încetarea contractului nu va afecta obligația de plată a contravalorii contractului de către BENEFICIAR.
+
+Art. 6. FORȚA MAJORĂ
+6.1. Nici una dintre părțile contractante nu răspunde de neexecutarea la termen și/sau în mod necorespunzător total sau parțial a obligațiilor asumate, dacă aceasta a fost cauzată de un eveniment imprevizibil și de neînlăturat prin voința părților, cum ar fi: război, cutremur, calamități, inundații, interdicții legale, cu condiția să anunțe partea cealaltă, în condiții legale, în termen de 72 ore de la data apariției evenimentului.
+6.2. După încetarea situației de forță majoră, părțile de comun acord, vor hotărî asupra continuării relației contractuale.
+
+Art. 7. LITIGII
+7.1. Eventualele diferende care s-ar putea ivi între părți în legătură cu interpretarea și/sau executarea prezentului contract, ori în legătură cu acesta, vor fi soluționate în măsura posibilului, pe cale amiabilă. În cazul în care diferendul nu va putea fi soluționat pe cale amiabilă, oricare dintre părțile contractante va putea să se adreseze instanței competente pentru soluționare.
+
+Art. 8. CLAUZA DE CONFIDENȚIALITATE ȘI PRELUCRAREA DATELOR
+8.1. Părțile se obligă să respecte confidențialitatea datelor și informațiilor de care iau cunoștință cu ocazia executării acestui contract și se angajează să nu facă declarații sau să întreprindă alte acțiuni în relațiile cu terții care să prejudicieze interesele celeilalte părți.
+8.2. PRESTATORUL prelucrează datele BENEFICIARULUI în vederea încheierii și executării prezentului contract, tocmai în temeiul relației contractuale dintre părți.
+8.3. Datele vor fi păstrate pe durata necesară executării contractului, iar ulterior pe durata de 10 ani potrivit legislației financiar-contabile și de arhivare.
+8.4. Datele pot fi divulgate partenerilor PRESTATORULUI care sprijină activitatea acestuia (precum contabili, consultanți) sau autorităților în condițiile prevăzute de lege. Datele nu vor fi transferate către state din afara Uniunii Europene sau Spațiului Economic European.
+8.5. În legătură cu prelucrarea datelor, vă puteți exercita oricare dintre următoarele drepturi – de a solicita accesul, rectificarea sau ștergerea datelor, portabilitatea datelor, restricționarea prelucrării, dreptul de vă opune prelucrării, în condițiile prevăzute de legislația aplicabilă, prin transmiterea unei cereri scrise pe e-mail la rezervari@ursitoarezurli.ro sau la adresa sediului indicată în preambul.
+
+Art. 9. DREPTURI DE PROPRIETATE INTELECTUALĂ
+9.1. Drepturile de proprietate intelectuală asupra imaginii și creațiilor artistice oferite de PRESTATOR în prestarea serviciilor potrivit contractului aparțin PRESTATORULUI.
+9.2. BENEFICIARUL va putea folosi înregistrarea de la eveniment care include Reprezentanția oferită de PRESTATOR potrivit contractului, doar în scopuri personale și nu va avea dreptul să o reproducă, transmită mai departe către terți sau să o dezvăluie publicului în orice mod, inclusiv prin postarea pe rețelele de socializare, fără acordul în prealabil al PRESTATORULUI.
+9.3. În cazul în care BENEFICIARUL nu va respecta aceste clauze și va încălca drepturile PRESTATORULUI sau ale terților, BENEFICIARUL declară și înțelege că este unic responsabil pentru orice consecințe și pentru orice prejudicii directe sau indirecte.
+
+Art. 10. CLAUZE FINALE
+10.1. Modificarea prezentului contract se poate face numai prin act adițional încheiat între părțile contractante.
+10.2. Prezentul contract reprezintă voința părților și înlătură orice altă înțelegere verbală sau scrisă, anterioară încheierii lui.
+10.3. Prezentul contract a fost încheiat astăzi ${d.dataContract}, la București, în două exemplare, ambele cu valoare de original, câte unul pentru fiecare parte.
+
+
+PRESTATOR                                    BENEFICIAR
+SOULVIBES SRL
+Andrea Bartha – Administrator                ${d.numeBenef}
+`;
+}
+
+// ─── GENERARE PDF ─────────────────────────────────────────────────────────────
+function buildContractHTML(d) {
+  return `
+  <div style="font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.65; color: #111; width: 170mm; margin: 0 auto;">
+
+    <div style="text-align:center; margin-bottom: 10mm;">
+      <div style="font-size: 15pt; font-weight: bold; letter-spacing: 2px;">CONTRACT DE PRESTĂRI SERVICII</div>
+      <div style="font-size: 11pt; margin-top: 3px;">NR. ${d.nr} / ${d.dataContract}</div>
+    </div>
+
+    <p>Încheiat între părțile:</p><br>
+    <p><strong>SOULVIBES SRL</strong> cu sediul în județul Mureș, localitatea Târgu Mureș, Str. Pandurilor nr. 27, ap. 5, înregistrată la Registrul Comerțului sub nr. J26/1974/2017, cod fiscal 38467683, cont nr. RO83 INGB 0000 9999 0739 3339 deschis la ING BANK, reprezentată de Andrea Bartha în calitate de Administrator, denumit în continuare <strong>PRESTATOR</strong>,</p>
+    <br><p style="text-align:center;">și</p><br>
+    <p><strong>PERSOANA FIZICĂ</strong> – ${d.numeBenef}, cu domiciliul în ${d.adresaBenef}, născut la data ${d.dataNastere}, numit în continuare <strong>BENEFICIAR</strong>.</p>
+    <br><p>s-a încheiat prezentul contract în următoarele condiții:</p><br>
+
+    <p><strong>Art. 1. OBIECTUL CONTRACTULUI</strong></p>
+    <p>1.1. Obiectul prezentului contract constă în angajarea de către Beneficiar a Prestatorului, în vederea prestării de servicii tip organizare de eveniment, prin susținerea unui program artistic, în locația stabilită de către Beneficiar.</p><br>
+
+    <p><strong>Art. 2. DURATA CONTRACTULUI</strong></p>
+    <p>2.1. Prezentul contract are valabilitate până în data ${d.dataEveniment} sau până după prestarea serviciilor care fac obiectul contractului, menționate în art. 1.1.</p><br>
+
+    <p><strong>Art. 3. VALOAREA CONTRACTULUI ȘI MODALITĂȚI DE PLATĂ</strong></p>
+    <p>3.1. Valoarea totală a contractului este de <strong>${d.valoare} RON</strong>.</p>
+    <p>3.2. Plata se va face prin virament bancar în contul RO83 INGB 0000 9999 0739 3339 deschis la ING BANK până în data de ${d.dataPlata}.</p>
+    <p>3.3. În cazul în care BENEFICIARUL nu va efectua plata în condițiile și la termenul prevăzut în art. 3.2, acesta va plăti penalități de întârziere de 0,1% din valoarea contractului/zi de întârziere.</p><br>
+
+    <p><strong>Art. 4. OBLIGAȚIILE PĂRȚILOR</strong></p>
+    <p>4.1. PRESTATORUL se obligă:</p>
+    <p>4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.nrZane} zâne, la ${d.locatie} în data de ${d.dataEveniment}.</p>
+    <p>4.2. BENEFICIARUL se obligă:</p>
+    <p>4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.</p>
+    <p>4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.</p>
+    <p>4.2.3. Să nu aducă modificări în desfășurătorul evenimentului fără o notificare prealabilă adresată PRESTATORULUI, cu cel puțin 2 zile înainte de data stabilită pentru desfășurarea evenimentului.</p>
+    <p>4.2.4. Să nu reprogrameze evenimentul fără informarea prealabilă a PRESTATORULUI și să acționeze astfel încât ambele părți să poată semna un act adițional la prezentului contract în vederea reprogramării.</p>
+    <p>4.2.5. Să achite contravaloarea serviciilor PRESTATORULUI, în conformitate cu dispozițiile art. 3.</p>
+    <p>4.2.6. Să achite orice altă taxă, tarif sau cheltuială aferentă organizării și desfășurării în condiții legale a evenimentului.</p><br>
+
+    <p><strong>Art. 5. ÎNCETAREA CONTRACTULUI</strong></p>
+    <p>5.1. Prezentul contract încetează la expirarea termenului pentru care a fost încheiat, conform art. 2 de mai sus.</p>
+    <p>5.2. Contractul poate înceta prin acordul părților în acest sens.</p>
+    <p>5.3. În caz de neexecutare ori executare defectuoasă a vreuneia dintre obligațiile stipulate la art. 4.2 în sarcina Beneficiarului, contractul va fi încetat de plin drept fără a mai fi necesară intervenția vreunei instanțe judecătorești, la simpla notificare a Beneficiarului.</p>
+    <p>5.4. Încetarea contractului nu va afecta obligația de plată a contravalorii contractului de către BENEFICIAR.</p><br>
+
+    <p><strong>Art. 6. FORȚA MAJORĂ</strong></p>
+    <p>6.1. Nici una dintre părțile contractante nu răspunde de neexecutarea la termen și/sau în mod necorespunzător total sau parțial a obligațiilor asumate, dacă aceasta a fost cauzată de un eveniment imprevizibil și de neînlăturat prin voința părților, cum ar fi: război, cutremur, calamități, inundații, interdicții legale, cu condiția să anunțe partea cealaltă în termen de 72 ore de la data apariției evenimentului.</p>
+    <p>6.2. După încetarea situației de forță majoră, părțile de comun acord vor hotărî asupra continuării relației contractuale.</p><br>
+
+    <p><strong>Art. 7. LITIGII</strong></p>
+    <p>7.1. Eventualele diferende care s-ar putea ivi între părți în legătură cu interpretarea și/sau executarea prezentului contract vor fi soluționate în măsura posibilului pe cale amiabilă. În cazul în care diferendul nu va putea fi soluționat pe cale amiabilă, oricare dintre părțile contractante va putea să se adreseze instanței competente pentru soluționare.</p><br>
+
+    <p><strong>Art. 8. CLAUZA DE CONFIDENȚIALITATE ȘI PRELUCRAREA DATELOR</strong></p>
+    <p>8.1. Părțile se obligă să respecte confidențialitatea datelor și informațiilor de care iau cunoștință cu ocazia executării acestui contract și se angajează să nu facă declarații sau să întreprindă alte acțiuni în relațiile cu terții care să prejudicieze interesele celeilalte părți.</p>
+    <p>8.2. PRESTATORUL prelucrează datele BENEFICIARULUI în vederea încheierii și executării prezentului contract, tocmai în temeiul relației contractuale dintre părți.</p>
+    <p>8.3. Datele vor fi păstrate pe durata necesară executării contractului, iar ulterior pe durata de 10 ani potrivit legislației financiar-contabile și de arhivare.</p>
+    <p>8.4. Datele pot fi divulgate partenerilor PRESTATORULUI care sprijină activitatea acestuia (precum contabili, consultanți) sau autorităților în condițiile prevăzute de lege. Datele nu vor fi transferate către state din afara Uniunii Europene sau Spațiului Economic European.</p>
+    <p>8.5. În legătură cu prelucrarea datelor, vă puteți exercita oricare dintre următoarele drepturi – de a solicita accesul, rectificarea sau ștergerea datelor, portabilitatea datelor, restricționarea prelucrării, dreptul de vă opune prelucrării, prin transmiterea unei cereri scrise pe e-mail la rezervari@ursitoarezurli.ro sau la adresa sediului indicată în preambul.</p><br>
+
+    <p><strong>Art. 9. DREPTURI DE PROPRIETATE INTELECTUALĂ</strong></p>
+    <p>9.1. Drepturile de proprietate intelectuală asupra imaginii și creațiilor artistice oferite de PRESTATOR în prestarea serviciilor potrivit contractului aparțin PRESTATORULUI.</p>
+    <p>9.2. BENEFICIARUL va putea folosi înregistrarea de la eveniment care include Reprezentanția oferită de PRESTATOR potrivit contractului, doar în scopuri personale și nu va avea dreptul să o reproducă, transmită mai departe către terți sau să o dezvăluie publicului în orice mod, inclusiv prin postarea pe rețelele de socializare, fără acordul în prealabil al PRESTATORULUI.</p>
+    <p>9.3. În cazul în care BENEFICIARUL nu va respecta aceste clauze și va încălca drepturile PRESTATORULUI sau ale terților, BENEFICIARUL declară și înțelege că este unic responsabil pentru orice consecințe și pentru orice prejudicii directe sau indirecte.</p><br>
+
+    <p><strong>Art. 10. CLAUZE FINALE</strong></p>
+    <p>10.1. Modificarea prezentului contract se poate face numai prin act adițional încheiat între părțile contractante.</p>
+    <p>10.2. Prezentul contract reprezintă voința părților și înlătură orice altă înțelegere verbală sau scrisă, anterioară încheierii lui.</p>
+    <p>10.3. Prezentul contract a fost încheiat astăzi ${d.dataContract}, la București, în două exemplare, ambele cu valoare de original, câte unul pentru fiecare parte.</p><br><br>
+
+    <table style="width:100%; margin-top: 10mm; border: none; border-collapse: collapse;">
+      <tr>
+        <td style="width:50%; vertical-align:top; padding-right: 10mm;">
+          <strong>PRESTATOR</strong><br>
+          SOULVIBES SRL<br>
+          Andrea Bartha – Administrator<br><br><br>
+          Semnătură: ___________________
+        </td>
+        <td style="width:50%; vertical-align:top; padding-left: 10mm;">
+          <strong>BENEFICIAR</strong><br>
+          ${d.numeBenef}<br><br><br><br>
+          Semnătură: ___________________
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
+
+function setStatus(id, msg, ok) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status ' + (ok ? 'ok' : 'err');
+}
+
+// ─── GOOGLE DRIVE ────────────────────────────────────────────────────────────
+const OAUTH_CLIENT_ID = '513525622767-81nlg2g1l0oaibn0q86o1m73ctadvslq.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_FOLDER_ID = '1cVoHxmqG3wPXaVV0Wa4aMou3tgFagIQk';
+let driveToken = null;
+let driveTokenClient = null;
+
+function conectareDrive() {
+  if (!window.google?.accounts?.oauth2) {
+    setStatus('driveStatus', '⚠ Se încarcă Google Identity... încearcă din nou în 2 secunde.', false);
+    return;
+  }
+  if (!driveTokenClient) {
+    driveTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: (resp) => {
+        if (resp.error) { setStatus('driveStatus', '⚠ Autentificare eșuată: ' + resp.error, false); return; }
+        driveToken = resp.access_token;
+        document.getElementById('btnDrive').textContent = '✓ Google Drive conectat';
+        document.getElementById('btnDrive').style.background = '#d1fae5';
+        document.getElementById('btnDrive').style.color = '#065f46';
+        setStatus('driveStatus', '✓ Conectat! Fișierele se vor salva automat în Drive.', true);
+      },
+    });
+  }
+  driveTokenClient.requestAccessToken();
+}
+
+async function uploadToDrive(blob, fileName, mimeType) {
+  if (!driveToken) {
+    setStatus('genStatus', '⚠ Conectați-vă mai întâi la Google Drive (butonul de sus)!', false);
+    return null;
+  }
+  const meta = { name: fileName, mimeType, parents: [DRIVE_FOLDER_ID] };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+  form.append('file', blob);
+
+  const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${driveToken}` },
+    body: form,
+  });
+  if (!resp.ok) throw new Error('Drive upload failed: ' + resp.status);
+  return await resp.json();
+}
+
+async function cautaFisierInFolder(nume) {
+  const q = encodeURIComponent(`name='${nume}' and '${DRIVE_FOLDER_ID}' in parents and trashed=false`);
+  const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { Authorization: `Bearer ${driveToken}` }
+  });
+  const data = await resp.json();
+  return data.files?.[0] || null;
+}
+
+async function genereazaSiSalveaza(tip) {
+  const d = getFormData();
+  if (!d.numeBenef || d.numeBenef === '...') { alert('Completați cel puțin numele beneficiarului!'); return; }
+
+  if (tip === 'pdf') {
+    setStatus('genStatus', '⏳ Se generează PDF-ul...', true);
+    try {
+      const pdfBlob = await genereazaPDFBlob(d);
+      const numeFisier = `Contract_${d.nr}_${d.numeBenef.replace(/\s+/g, '_')}.pdf`;
+
+      // Salvare locala
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a'); a.href = url; a.download = numeFisier; a.click();
+      URL.revokeObjectURL(url);
+
+      // Salvare Drive
+      if (driveToken) {
+        setStatus('genStatus', '⏳ Se încarcă în Google Drive...', true);
+        const result = await uploadToDrive(pdfBlob, numeFisier, 'application/pdf');
+        setStatus('genStatus', `✓ PDF salvat în Drive: ${result.name}`, true);
+      } else {
+        setStatus('genStatus', `✓ PDF descărcat local. Conectați Drive pentru salvare automată.`, true);
+      }
+    } catch(e) { setStatus('genStatus', '⚠ Eroare: ' + e.message, false); }
+
+  } else if (tip === 'excel') {
+    try {
+      const { blob, numeFisier } = await genereazaExcelBlob(d);
+
+      // Salvare locala
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = numeFisier; a.click();
+      URL.revokeObjectURL(url);
+
+      // Salvare Drive — actualizare fișier existent sau creare nou
+      if (driveToken) {
+        setStatus('genStatus', '⏳ Se actualizează fișierul Excel în Drive...', true);
+        await upsertExcelInDrive(d);
+      } else {
+        setStatus('genStatus', `✓ Excel descărcat local. Conectați Drive pentru salvare automată.`, true);
+      }
+    } catch(e) { setStatus('genStatus', '⚠ Eroare: ' + e.message, false); }
+  }
+}
+
+// ─── PDF CA BLOB ──────────────────────────────────────────────────────────────
+async function genereazaPDFBlob(d) {
+  const { jsPDF } = window.jspdf;
+  const pageW = 210, pageH = 297;
+  const marginTop = 42, marginBottom = 20, marginSide = 20;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:170mm;background:white;';
+  wrap.innerHTML = buildContractHTML(d);
+  document.body.appendChild(wrap);
+
+  const canvas = await html2canvas(wrap, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+  document.body.removeChild(wrap);
+
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const imgW = pageW - marginSide * 2;
+  const imgH = (canvas.height * imgW) / canvas.width;
+  const contentH = pageH - marginTop - marginBottom;
+  const totalPages = Math.ceil(imgH / contentH);
+
+  for (let pg = 0; pg < totalPages; pg++) {
+    if (pg > 0) doc.addPage();
+    doc.setDrawColor(130, 80, 160); doc.setLineWidth(0.8);
+    doc.line(marginSide, 8, pageW - marginSide, 8);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(90, 40, 120);
+    doc.text('ZANELE ZORILOR', pageW / 2, 15, { align: 'center' });
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(100, 100, 100);
+    doc.text('Artist · Traditie, emotie si cantec romanesc pentru inceputuri cu sens', pageW / 2, 20, { align: 'center' });
+    doc.text('Botez  |  Nunta  |  Mot', pageW / 2, 25, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(130, 80, 160);
+    doc.text('Tel: 0728 143 168', pageW / 2, 30, { align: 'center' });
+    doc.setDrawColor(130, 80, 160); doc.setLineWidth(0.4);
+    doc.line(marginSide, 34, pageW - marginSide, 34);
+
+    const srcY = pg * contentH * (canvas.width / imgW);
+    const srcH = Math.min(contentH * (canvas.width / imgW), canvas.height - srcY);
+    const sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = canvas.width; sliceCanvas.height = srcH;
+    sliceCanvas.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+    doc.addImage(sliceCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', marginSide, marginTop, imgW, srcH * imgW / canvas.width);
+
+    doc.setDrawColor(130, 80, 160); doc.setLineWidth(0.4);
+    doc.line(marginSide, pageH - marginBottom + 2, pageW - marginSide, pageH - marginBottom + 2);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(120, 120, 120);
+    doc.text(`Contract nr. ${d.nr} / ${d.dataContract}  ·  Beneficiar: ${d.numeBenef}  ·  Eveniment: ${d.dataEveniment}`, marginSide, pageH - marginBottom + 7);
+    doc.text(`Pagina ${pg + 1} din ${totalPages}`, pageW - marginSide, pageH - marginBottom + 7, { align: 'right' });
+    doc.setFontSize(7); doc.setTextColor(160, 160, 160);
+    doc.text('SOULVIBES SRL · Str. Pandurilor nr. 27, ap. 5, Târgu Mureș · rezervari@ursitoarezurli.ro', pageW / 2, pageH - marginBottom + 12, { align: 'center' });
+  }
+  return new Blob([doc.output('arraybuffer')], { type: 'application/pdf' });
+}
+
+// ─── EXCEL DRIVE UPSERT ───────────────────────────────────────────────────────
+const EXCEL_FILENAME = 'SoulVibes - nr contracte.xlsx';
+
+async function cautaFisierDrive(nume) {
+  const q = encodeURIComponent(`name='${nume}' and trashed=false`);
+  const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    headers: { Authorization: `Bearer ${driveToken}` }
+  });
+  const data = await resp.json();
+  return data.files?.[0] || null;
+}
+
+async function descarcaFisierDrive(fileId) {
+  const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${driveToken}` }
+  });
+  return await resp.arrayBuffer();
+}
+
+async function actualizeazaFisierDrive(fileId, blob, mimeType) {
+  const resp = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': mimeType },
+    body: blob,
+  });
+  return await resp.json();
+}
+
+async function upsertExcelInDrive(d) {
+  // Formatare dată ca dd.mm (ex: 13.06)
+  const dataScurta = d.dataEveniment.replace(/^(\d{2})\.(\d{2})\.\d{4}$/, '$1.$2') || d.dataEveniment;
+
+  // Rândul nou — exact structura fișierului tău
+  const randNou = [
+    parseInt(d.nr) || d.nr,
+    dataScurta,
+    d.numeBenef.toUpperCase(),
+    `${d.nrZane} zane`,
+    d.obs,
+    parseFloat(d.valoare) || '',
+    d.obs2,
+  ];
+
+  const mimeXlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  let wb;
+  const fisierExistent = await cautaFisierInFolder(EXCEL_FILENAME);
+
+  if (fisierExistent) {
+    // Descarcă, adaugă rândul, suprascrie
+    const buf = await descarcaFisierDrive(fisierExistent.id);
+    wb = XLSX.read(buf, { type: 'array' });
+    const wsName = wb.SheetNames[0];
+    const data = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { header: 1 });
+    data.push(randNou);
+    wb.Sheets[wsName] = XLSX.utils.aoa_to_sheet(data);
+
+    const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: mimeXlsx });
+    await actualizeazaFisierDrive(fisierExistent.id, blob, mimeXlsx);
+    setStatus('genStatus', `✓ Contract nr. ${d.nr} adăugat în "${EXCEL_FILENAME}" pe Drive`, true);
+  } else {
+    // Prima dată — crează fișier cu header-ul exact ca al tău
+    wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Nr crt', 'data eveniment', 'nume beneficiar', 'Tip eveniment', 'OBS', 'Tarif', 'obs 2'],
+      randNou
+    ]);
+    ws['!cols'] = [8, 14, 30, 14, 25, 8, 35].map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws, 'Contracte 2026');
+    const blob = new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: mimeXlsx });
+    await uploadToDrive(blob, EXCEL_FILENAME, mimeXlsx);
+    setStatus('genStatus', `✓ Fișier "${EXCEL_FILENAME}" creat în Drive cu contractul nr. ${d.nr}`, true);
+  }
+}
+
+// ─── EXCEL CA BLOB ────────────────────────────────────────────────────────────
+async function genereazaExcelBlob(d) {
+  let wb;
+  const fileInput = document.getElementById('excelFile');
+  if (fileInput?.files[0]) {
+    wb = XLSX.read(await fileInput.files[0].arrayBuffer(), { type: 'array' });
+  } else {
+    wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Nr.', 'Data', 'Beneficiar', 'Tip eveniment', 'OBS', 'Tarif', 'Note']
+    ]), 'Contracte 2026');
+  }
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  data.push([d.nr, d.dataEveniment, d.numeBenef, `${d.nrZane} zane`, '', parseFloat(d.valoare)||0, `Loc: ${d.locatie}`]);
+  wb.Sheets[wb.SheetNames[0]] = XLSX.utils.aoa_to_sheet(data);
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return {
+    blob: new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    numeFisier: 'SoulVibes - nr contracte ACTUALIZAT.xlsx'
+  };
+}
+
+// Preview live la orice schimbare
+document.addEventListener('input', updatePreview);
+document.addEventListener('change', updatePreview);
+</script>
+
+<!-- Input ascuns pentru upload Excel -->
+<input type="file" id="excelFile" accept=".xlsx" style="display:none">
+
+</body>
+</html>
