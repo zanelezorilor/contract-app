@@ -848,20 +848,12 @@ async function genereazaSiSalveaza(tip) {
 
   } else if (tip === 'excel') {
     try {
-      const { blob, numeFisier } = await genereazaExcelBlob(d);
-
-      // Salvare locala
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = numeFisier; a.click();
-      URL.revokeObjectURL(url);
-
-      // Salvare Drive — actualizare fișier existent sau creare nou
-      if (driveToken) {
-        setStatus('genStatus', '⏳ Se actualizează fișierul Excel în Drive...', true);
-        await upsertExcelInDrive(d);
-      } else {
-        setStatus('genStatus', `✓ Excel descărcat local. Conectați Drive pentru salvare automată.`, true);
+      if (!driveToken) {
+        setStatus('genStatus', '⚠ Conectați Google Drive mai întâi pentru a salva Excel-ul!', false);
+        return;
       }
+      setStatus('genStatus', '⏳ Se actualizează fișierul Excel în Drive...', true);
+      await upsertExcelInDrive(d);
     } catch(e) { setStatus('genStatus', '⚠ Eroare: ' + e.message, false); }
   }
 }
