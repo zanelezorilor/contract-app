@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SoulVibes – Generator Contracte 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,129 +12,269 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f5f4f9; color: #1a1a2e; }
 
-  header {
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    color: white; padding: 20px 32px;
-    display: flex; align-items: center; gap: 14px;
+  /* ── LOGIN SCREEN ─────────────────────────────── */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #1a0533 0%, #3b0764 50%, #1a0533 100%);
+    display: flex; align-items: center; justify-content: center;
   }
-  header h1 { font-size: 22px; font-weight: 700; }
-  header span { font-size: 13px; opacity: .75; }
+  #loginScreen.hidden { display: none; }
+  .login-box {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px; padding: 48px 40px;
+    width: 100%; max-width: 400px; text-align: center;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+  }
+  .login-logo { width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+    margin: 0 auto 20px; display: block;
+    border: 3px solid rgba(168,85,247,0.6);
+    box-shadow: 0 0 32px rgba(168,85,247,0.4); }
+  .login-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .login-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 32px; }
+  .login-field { margin-bottom: 14px; text-align: left; }
+  .login-field label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; display: block; }
+  .login-field input {
+    width: 100%; padding: 12px 16px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px; font-size: 14px; color: white;
+    transition: all .2s; outline: none;
+  }
+  .login-field input::placeholder { color: rgba(255,255,255,0.35); }
+  .login-field input:focus { border-color: #a855f7; background: rgba(168,85,247,0.15); }
+  .login-btn {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white; border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: all .2s; letter-spacing: 0.3px;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+  }
+  .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,0.6); }
+  .login-err { color: #f87171; font-size: 13px; margin-top: 12px; display: none; }
 
-  .container { max-width: 860px; margin: 32px auto; padding: 0 16px; }
+  /* ── HEADER ───────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, #1a0533, #3b0764);
+    color: white; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(168,85,247,0.5); }
+  .header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-sub { font-size: 11px; opacity: 0.55; margin-top: 1px; }
+  .header-logout { font-size: 12px; color: rgba(255,255,255,0.5); cursor: pointer;
+    padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;
+    transition: all .2s; background: none; }
+  .header-logout:hover { color: white; border-color: rgba(255,255,255,0.5); }
+
+  /* ── LAYOUT ───────────────────────────────────── */
+  .container { max-width: 820px; margin: 36px auto; padding: 0 20px 60px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 700; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin: 32px 0 10px 4px;
+  }
 
   .card {
-    background: white; border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08);
-    padding: 28px 32px; margin-bottom: 24px;
+    background: white; border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    padding: 28px 32px; margin-bottom: 16px;
+    border: 1px solid rgba(124,58,237,0.06);
   }
-  .card h2 { font-size: 15px; font-weight: 700; color: #7c3aed; margin-bottom: 20px;
-    text-transform: uppercase; letter-spacing: .5px; }
+  .card h2 {
+    font-size: 13px; font-weight: 700; color: #7c3aed;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 22px; padding-bottom: 12px;
+    border-bottom: 1px solid #f3e8ff;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2::before { content: ''; display: inline-block; width: 3px; height: 14px;
+    background: linear-gradient(#7c3aed, #a855f7); border-radius: 2px; }
 
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
   .full { grid-column: 1 / -1; }
 
-  label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; }
+  label { display: block; font-size: 11px; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
   input, select, textarea {
-    width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
-    border-radius: 8px; font-size: 14px; transition: border-color .2s;
-    background: #fafafa;
+    width: 100%; padding: 10px 14px;
+    border: 1.5px solid #e5e7eb; border-radius: 10px;
+    font-size: 14px; font-family: inherit;
+    transition: all .2s; background: #fafafa; color: #1a1a2e;
   }
-  input:focus, select:focus { outline: none; border-color: #7c3aed; background: white; }
+  input:focus, select:focus { outline: none; border-color: #7c3aed;
+    background: white; box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
   input.error { border-color: #ef4444; }
+  select { cursor: pointer; }
 
+  /* ── TARIF BOX ────────────────────────────────── */
   .tarif-box {
-    background: linear-gradient(135deg, #f3e8ff, #ede9fe);
-    border: 2px solid #7c3aed; border-radius: 10px;
-    padding: 16px 20px; margin-top: 8px;
+    background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+    border: 1.5px solid #c4b5fd; border-radius: 12px;
+    padding: 18px 22px;
   }
-  .tarif-box .label { font-size: 12px; color: #7c3aed; font-weight: 600; }
-  .tarif-box .value { font-size: 28px; font-weight: 800; color: #5b21b6; }
-  .tarif-box .sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+  .tarif-box .label { font-size: 10px; color: #7c3aed; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .tarif-box .value { font-size: 32px; font-weight: 800; color: #4c1d95;
+    letter-spacing: -1px; line-height: 1; }
+  .tarif-box .sub { font-size: 11px; color: #8b5cf6; margin-top: 6px; }
 
+  /* ── BUTTONS ──────────────────────────────────── */
   .dist-row { display: flex; gap: 10px; align-items: flex-end; }
   .dist-row input { flex: 1; }
   .btn-calc {
-    padding: 10px 16px; background: #7c3aed; color: white;
-    border: none; border-radius: 8px; cursor: pointer; font-size: 13px;
-    font-weight: 600; white-space: nowrap; transition: background .2s;
+    padding: 10px 18px; background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white; border: none; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+    transition: all .2s; box-shadow: 0 2px 8px rgba(124,58,237,0.3);
   }
-  .btn-calc:hover { background: #6d28d9; }
-  .btn-calc:disabled { background: #c4b5fd; cursor: not-allowed; }
-
-  .discount-banner {
-    background: #fef3c7; border: 2px solid #f59e0b;
-    border-radius: 10px; padding: 14px 18px;
-    display: none; align-items: center; gap: 12px;
-  }
-  .discount-banner.visible { display: flex; }
-  .discount-banner .icon { font-size: 24px; }
-  .discount-banner strong { font-size: 14px; color: #92400e; }
-  .discount-banner p { font-size: 12px; color: #78350f; margin-top: 2px; }
-  .discount-input { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
-  .discount-input input { width: 80px; }
+  .btn-calc:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,58,237,0.4); }
+  .btn-calc:disabled { background: #c4b5fd; box-shadow: none; cursor: not-allowed; transform: none; }
 
   .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
   .btn {
-    flex: 1; min-width: 160px; padding: 13px 20px;
-    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    flex: 1; min-width: 160px; padding: 14px 20px;
+    border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
     cursor: pointer; transition: all .2s; display: flex; align-items: center;
-    justify-content: center; gap: 8px;
+    justify-content: center; gap: 8px; font-family: inherit; letter-spacing: 0.2px;
   }
-  .btn-primary { background: #7c3aed; color: white; }
-  .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
-  .btn-secondary { background: #059669; color: white; }
-  .btn-secondary:hover { background: #047857; transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(135deg, #6d28d9, #7c3aed); color: white;
+    box-shadow: 0 4px 14px rgba(109,40,217,0.35); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(109,40,217,0.45); }
+  .btn-secondary { background: linear-gradient(135deg, #047857, #059669); color: white;
+    box-shadow: 0 4px 14px rgba(5,150,105,0.3); }
+  .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5,150,105,0.4); }
   .btn-outline { background: white; color: #7c3aed; border: 2px solid #7c3aed; }
-  .btn-outline:hover { background: #f3e8ff; }
+  .btn-outline:hover { background: #f5f3ff; }
 
-  .status { font-size: 13px; color: #6b7280; margin-top: 10px; text-align: center; }
+  /* ── DRIVE BUTTON ─────────────────────────────── */
+  #driveBtn {
+    width: 100%; padding: 12px; border-radius: 12px; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: all .2s; border: none;
+    font-family: inherit;
+  }
+  #driveBtn.disconnected {
+    background: #f9fafb; color: #374151;
+    border: 2px dashed #d1d5db;
+  }
+  #driveBtn.disconnected:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+  #driveBtn.connected {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46; border: 1.5px solid #6ee7b7;
+  }
+
+  /* ── STATUS ───────────────────────────────────── */
+  .status { font-size: 12px; color: #9ca3af; margin-top: 10px; text-align: center; }
   .status.ok { color: #059669; }
   .status.err { color: #ef4444; }
 
-  /* Modal */
+  /* ── DISCOUNT BANNER ──────────────────────────── */
+  .discount-banner {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 1.5px solid #fcd34d; border-radius: 12px;
+    padding: 16px 20px; display: none; align-items: flex-start; gap: 14px;
+    margin-top: 16px;
+  }
+  .discount-banner.visible { display: flex; }
+  .discount-banner .icon { font-size: 26px; flex-shrink: 0; }
+  .discount-banner strong { font-size: 14px; color: #92400e; font-weight: 700; }
+  .discount-banner p { font-size: 12px; color: #78350f; margin-top: 2px; }
+  .discount-input { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+  .discount-input input { width: 80px; background: white; }
+
+  /* ── MODAL ────────────────────────────────────── */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.5); z-index: 1000;
+    background: rgba(15,0,30,0.6); z-index: 1000;
     align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
   }
   .modal-overlay.visible { display: flex; }
   .modal {
-    background: white; border-radius: 16px; padding: 32px;
-    max-width: 440px; width: 90%; text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    background: white; border-radius: 20px; padding: 36px;
+    max-width: 420px; width: 90%; text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
   }
-  .modal .icon { font-size: 48px; margin-bottom: 12px; }
-  .modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #7c3aed; }
-  .modal p { font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .modal .icon { font-size: 44px; margin-bottom: 14px; }
+  .modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #4c1d95; }
+  .modal p { font-size: 14px; color: #6b7280; margin-bottom: 24px; line-height: 1.6; }
   .modal .modal-actions { display: flex; gap: 10px; }
-  .modal .modal-actions .btn { font-size: 13px; padding: 10px 16px; }
+  .modal .modal-actions .btn { font-size: 13px; padding: 11px 16px; }
 
+  /* ── PREVIEW ──────────────────────────────────── */
   .preview-section { margin-top: 12px; }
   .preview-section summary { cursor: pointer; font-size: 13px; color: #7c3aed; font-weight: 600; }
   #contractPreview {
-    margin-top: 12px; padding: 20px; background: #f8f7ff;
-    border: 1px solid #ddd6fe; border-radius: 8px;
+    margin-top: 12px; padding: 20px; background: #f9f7ff;
+    border: 1px solid #ddd6fe; border-radius: 10px;
     font-size: 12px; line-height: 1.7; white-space: pre-wrap;
     max-height: 300px; overflow-y: auto; color: #333;
   }
+
+  /* ── VIOARA CHECKBOX ──────────────────────────── */
+  .vioara-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: #374151;
+    cursor: pointer; padding: 10px 14px;
+    border: 1.5px solid #e5e7eb; border-radius: 10px;
+    background: #fafafa; transition: all .2s; white-space: nowrap;
+    text-transform: none; letter-spacing: 0;
+  }
+  .vioara-label:hover { border-color: #7c3aed; background: #f5f3ff; color: #7c3aed; }
+  .vioara-label input[type=checkbox] { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
 
   @media (max-width: 600px) {
     .grid-2, .grid-3 { grid-template-columns: 1fr; }
     .full { grid-column: 1; }
     .actions { flex-direction: column; }
+    header { padding: 0 20px; }
+    .container { margin: 20px auto; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>🌟 SoulVibes – Generator Contracte</h1>
-    <span>Zanele Zorilor · 2026</span>
+<!-- ── LOGIN SCREEN ─────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <img class="login-logo" id="loginLogo" src="" alt="SoulVibes Logo">
+    <div class="login-title">SoulVibes</div>
+    <div class="login-sub">Zanele Zorilor · Generator Contracte</div>
+    <div class="login-field">
+      <label>Utilizator</label>
+      <input type="text" id="loginUser" placeholder="username" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label>Parolă</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Intră în aplicație</button>
+    <div class="login-err" id="loginErr">Utilizator sau parolă incorectă.</div>
   </div>
+</div>
+
+<!-- ── HEADER ────────────────────────────────── -->
+<header>
+  <div class="header-left">
+    <img class="header-logo" id="headerLogo" src="" alt="Logo">
+    <div>
+      <div class="header-title">SoulVibes – Generator Contracte</div>
+      <div class="header-sub">Zanele Zorilor · 2026</div>
+    </div>
+  </div>
+  <button class="header-logout" onclick="doLogout()">Ieșire</button>
 </header>
 
 <div class="container">
@@ -564,6 +705,45 @@ function fallbackDist(locatie, btn) {
 }
 
 // ─── CALCUL TARIF ────────────────────────────────────────────────────────────
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+const AUTH_USERS = { 'zanele': 'soulvibes2026', 'admin': 'zanele123' };
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim().toLowerCase();
+  const p = document.getElementById('loginPass').value;
+  if (AUTH_USERS[u] && AUTH_USERS[u] === p) {
+    sessionStorage.setItem('sv_auth', '1');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('loginErr').style.display = 'none';
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('sv_auth');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+(function checkAuth() {
+  if (!sessionStorage.getItem('sv_auth')) {
+    document.getElementById('loginScreen').classList.remove('hidden');
+  } else {
+    document.getElementById('loginScreen').classList.add('hidden');
+  }
+  // Set logo in both login and header
+  const logo = 'data:image/png;base64,' + LOGO_B64;
+  const li = document.getElementById('loginLogo');
+  const hi = document.getElementById('headerLogo');
+  if (li) li.src = logo;
+  if (hi) hi.src = logo;
+})();
+
+// ─── TARIFE ──────────────────────────────────────────────────────────────────
 const BAZA_ZANE = { 4: 1200, 6: 1600 };
 const BAZA_EVENIMENT = {
   'Botez': null,
