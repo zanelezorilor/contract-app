@@ -339,29 +339,23 @@
     <div class="grid-2">
       <div>
         <label>Tip eveniment *</label>
-        <select id="tipEveniment" onchange="calcTarif()">
+        <select id="tipEveniment" onchange="schimbaTipEv()">
           <option value="Botez">Botez</option>
-          <option value="Mot">Moț</option>
-          <option value="Mot + tava">Moț + tavă</option>
-          <option value="Nunta">Nuntă</option>
-          <option value="Nunta + instr.">Nuntă + instr.</option>
+          <option value="Moț">Moț</option>
           <option value="Nuntez">Nuntez</option>
+          <option value="Nuntă">Nuntă</option>
         </select>
       </div>
       <div>
-        <label>Nr. zâne *</label>
-        <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
-          <select id="nrZane" onchange="calcTarif()" style="flex:1">
-            <option value="4">4 zâne</option>
-            <option value="6">6 zâne</option>
-          </select>
-          <label style="display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap;cursor:pointer">
-            <input type="checkbox" id="cuVioara" onchange="calcTarif()" style="width:18px;height:18px;cursor:pointer">
-            + Vioară (+600 RON)
-          </label>
-        </div>
+        <label>Concept *</label>
+        <select id="concept" onchange="calcTarif()">
+          <option value="4 Zâne">4 Zâne</option>
+          <option value="4 Zâne + instrument">4 Zâne + instrument</option>
+          <option value="6 Zâne">6 Zâne</option>
+          <option value="6 Zâne + instrument">6 Zâne + instrument</option>
+        </select>
       </div>
-      <div>
+      <div id="sectKm">
         <label>Locația evenimentului *</label>
         <div class="dist-row">
           <input id="locatieEveniment" type="text" placeholder="ex: Cluj-Napoca"
@@ -371,7 +365,7 @@
           </button>
         </div>
       </div>
-      <div>
+      <div id="sectKmVal">
         <label>Distanță (km de la București)</label>
         <input id="kmDistanta" type="number" placeholder="ex: 105"
           oninput="calcTarif()" min="0">
@@ -741,8 +735,8 @@ function doLogout() {
 })();
 
 // ─── TARIFE ──────────────────────────────────────────────────────────────────
-// Prețuri Botez 4 zâne + vioara pre-calculate pe km (din tabelul de tarife)
-const TARIFE_VIOARA = [
+// Botez 4 Zâne + instrument — prețuri pre-calculate pe km
+const TARIFE_INSTR = [
   { max: 20,       pret: 1600 },
   { max: 30,       pret: 1800 },
   { max: 40,       pret: 2100 },
@@ -770,57 +764,66 @@ const TARIFE_VIOARA = [
   { max: Infinity, pret: 4700 },
 ];
 
-// Prețuri de bază la București (fără transport) — Sheet Standard
-const BAZA_BOTEZ_6 = { fara: 1850, cu: 2200 };
-const BAZA_EVENIMENT = {
-  // [event]: { 4: preț_4zane, 6: preț_6zane }
-  'Mot':        { 4:  900, 6:  900 },
-  'Mot + tava': { 4: 1200, 6: 1200 },
-  'Nunta':      { 4: 2000, 6: 2600 },
-  'Nunta + instr.': { 4: 2000, 6: 3000 },
-  'Nuntez':     { 4: 1400, 6: 2400 },
+// Concepte disponibile per tip eveniment
+const CONCEPTE = {
+  'Botez':  ['4 Zâne', '4 Zâne + instrument', '6 Zâne', '6 Zâne + instrument'],
+  'Moț':    ['4 Zâne', '4 Zâne + tavă'],
+  'Nuntez': ['4 Zâne', '4 Zâne + instrument', '6 Zâne + instrument'],
+  'Nuntă':  ['4 Zâne + instrument', '6 Zâne', '6 Zâne + instrument'],
 };
+
+// Prețuri fixe (fără transport) pentru non-Botez
+const PRETURI_FIXE = {
+  'Moț':    { '4 Zâne': 900,  '4 Zâne + tavă': 1200 },
+  'Nuntez': { '4 Zâne': 1400, '4 Zâne + instrument': 1800, '6 Zâne + instrument': 2400 },
+  'Nuntă':  { '4 Zâne + instrument': 2000, '6 Zâne': 2600, '6 Zâne + instrument': 3000 },
+};
+
+// Botez 6 Zâne — baze București + transport din tabelul 4 zâne
+const BOTEZ_6 = { '6 Zâne': 1850, '6 Zâne + instrument': 2200 };
+
+function schimbaTipEv() {
+  const tip = document.getElementById('tipEveniment').value;
+  const sel = document.getElementById('concept');
+  const concepteList = CONCEPTE[tip] || [];
+  sel.innerHTML = concepteList.map(c => `<option value="${c}">${c}</option>`).join('');
+  // Secțiunea km — vizibilă doar pentru Botez
+  const display = tip === 'Botez' ? '' : 'none';
+  ['sectKm','sectKmVal'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = display; });
+  calcTarif();
+}
 
 function calcTarif() {
   const km = parseFloat(document.getElementById('kmDistanta').value);
-  const zane = parseInt(document.getElementById('nrZane').value);
   const tipEv = document.getElementById('tipEveniment').value;
-  const cuVioara = document.getElementById('cuVioara').checked;
+  const concept = document.getElementById('concept').value;
   const reducere = parseFloat(document.getElementById('reducereContract').value) || 0;
 
-  if (isNaN(km) || km < 0) {
-    document.getElementById('tarifAfișat').textContent = '— RON';
-    document.getElementById('tarifSub').textContent = 'Introduceți distanța în km';
-    tarifBaza = 0;
-    updatePreview();
-    return;
-  }
-
-  // Preț Botez 4 zâne la distanța km (tabel principal)
-  const rand4 = TARIFE[4].find(r => km <= r.max);
-  const kmPret4 = rand4 ? rand4.pret : TARIFE[4][TARIFE[4].length - 1].pret;
-
   if (tipEv === 'Botez') {
-    if (zane === 4) {
-      if (cuVioara) {
-        const rv = TARIFE_VIOARA.find(r => km <= r.max);
-        tarifBaza = rv ? rv.pret : TARIFE_VIOARA[TARIFE_VIOARA.length - 1].pret;
-      } else {
-        tarifBaza = kmPret4;
-      }
-    } else { // 6 zâne Botez
-      const transport = kmPret4 - 1200;
-      tarifBaza = (cuVioara ? BAZA_BOTEZ_6.cu : BAZA_BOTEZ_6.fara) + transport;
+    if (isNaN(km) || km < 0) {
+      document.getElementById('tarifAfișat').textContent = '— RON';
+      document.getElementById('tarifSub').textContent = 'Introduceți distanța în km (doar pentru Botez)';
+      tarifBaza = 0; updatePreview(); return;
+    }
+    if (concept === '4 Zâne') {
+      const r = TARIFE[4].find(r => km <= r.max);
+      tarifBaza = r ? r.pret : TARIFE[4][TARIFE[4].length-1].pret;
+    } else if (concept === '4 Zâne + instrument') {
+      const r = TARIFE_INSTR.find(r => km <= r.max);
+      tarifBaza = r ? r.pret : TARIFE_INSTR[TARIFE_INSTR.length-1].pret;
+    } else {
+      const r4 = TARIFE[4].find(r => km <= r.max);
+      const km4 = r4 ? r4.pret : TARIFE[4][TARIFE[4].length-1].pret;
+      tarifBaza = BOTEZ_6[concept] + (km4 - 1200);
     }
   } else {
-    const transport = kmPret4 - 1200;
-    const baza = (BAZA_EVENIMENT[tipEv] || {})[zane] || (BAZA_EVENIMENT[tipEv] || {})[4] || 0;
-    tarifBaza = baza + transport + (cuVioara ? 600 : 0);
+    if (isNaN(km)) { /* km nu contează pentru non-Botez */ }
+    tarifBaza = (PRETURI_FIXE[tipEv] || {})[concept] || 0;
   }
   let tarifFinal = tarifBaza - reducere;
 
-  const tipLabel = tipEv === 'Botez' ? `Botez · ${zane} zâne` : `${tipEv} · ${zane} zâne`;
-  let subText = `${tipLabel}${cuVioara ? ' + vioară' : ''} · ${km} km de la București`;
+  let subText = `${tipEv} · ${concept}`;
+  if (tipEv === 'Botez' && !isNaN(km)) subText += ` · ${km} km de la București`;
   if (reducere > 0) subText += ` · Reducere −${reducere} RON`;
 
   if (discountActiv) {
@@ -846,9 +849,8 @@ function getFormData() {
     dataNastere: document.getElementById('dataNastere').value || 'ZZ.LL.AAAA',
     dataEveniment: document.getElementById('dataEveniment').value || 'ZZ.LL.2026',
     locatie: document.getElementById('locatieEveniment').value || '...',
-    nrZane: document.getElementById('nrZane').value,
     tipEveniment: document.getElementById('tipEveniment').value,
-    cuVioara: document.getElementById('cuVioara').checked,
+    concept: document.getElementById('concept').value,
     valoare: document.getElementById('valoareContract').value || '...',
     dataPlata: document.getElementById('dataPlata').value || 'ZZ.LL.2026',
     obs: document.getElementById('obsContract').value || '',
@@ -888,7 +890,7 @@ Art. 3. VALOAREA CONTRACTULUI ȘI MODALITĂȚI DE PLATĂ
 
 Art. 4. OBLIGAȚIILE PĂRȚILOR
 4.1. PRESTATORUL se obligă:
-4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}, la ${d.locatie} în data de ${d.dataEveniment}.
+4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.concept}, la ${d.locatie} în data de ${d.dataEveniment}.
 4.2. BENEFICIARUL se obligă:
 4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.
 4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.
@@ -963,7 +965,7 @@ function buildContractHTML(d) {
 
     <p><strong>Art. 4. OBLIGAȚIILE PĂRȚILOR</strong></p>
     <p>4.1. PRESTATORUL se obligă:</p>
-    <p>4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}, la ${d.locatie} în data de ${d.dataEveniment}.</p>
+    <p>4.1.1. Să asigure pentru Beneficiar servicii artistice – Zanele Zorilor, concept ${d.tipEveniment} · ${d.concept}, la ${d.locatie} în data de ${d.dataEveniment}.</p>
     <p>4.2. BENEFICIARUL se obligă:</p>
     <p>4.2.1. Să pună la dispoziția PRESTATORULUI amplasamentul pentru desfășurarea spectacolului, să asigure condițiile necesare unei bune desfășurări a evenimentului.</p>
     <p>4.2.2. Să pună la dispoziția PRESTATORULUI toate informațiile pe care acesta le consideră necesare pentru o bună desfășurare a prestației sale și care nu pot prejudicia imaginea niciuneia dintre părți.</p>
@@ -1212,7 +1214,7 @@ async function upsertExcelInDrive(d) {
     parseInt(d.nr) || d.nr,
     dataScurta,
     d.numeBenef.toUpperCase(),
-    `${d.tipEveniment} · ${d.nrZane} zâne${d.cuVioara ? ' + vioară' : ''}`,
+    `${d.tipEveniment} · ${d.concept}`,
     d.obs,
     parseFloat(d.valoare) || '',
     d.obs2,
@@ -1273,7 +1275,7 @@ async function genereazaExcelBlob(d) {
   }
   const ws = wb.Sheets[wb.SheetNames[0]];
   const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  data.push([d.nr, d.dataEveniment, d.numeBenef, `${d.nrZane} zane`, '', parseFloat(d.valoare)||0, `Loc: ${d.locatie}`]);
+  data.push([d.nr, d.dataEveniment, d.numeBenef, `${d.tipEveniment} · ${d.concept}`, d.obs, parseFloat(d.valoare)||0, d.obs2]);
   wb.Sheets[wb.SheetNames[0]] = XLSX.utils.aoa_to_sheet(data);
   const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   return {
@@ -1285,6 +1287,9 @@ async function genereazaExcelBlob(d) {
 // Preview live la orice schimbare
 document.addEventListener('input', updatePreview);
 document.addEventListener('change', updatePreview);
+
+// Inițializare la load
+schimbaTipEv();
 </script>
 
 <!-- Input ascuns pentru upload Excel -->
