@@ -741,14 +741,44 @@ function doLogout() {
 })();
 
 // ─── TARIFE ──────────────────────────────────────────────────────────────────
-const BAZA_ZANE = { 4: 1200, 6: 1600 };
+// Prețuri Botez 4 zâne + vioara pre-calculate pe km (din tabelul de tarife)
+const TARIFE_VIOARA = [
+  { max: 20,       pret: 1600 },
+  { max: 30,       pret: 1800 },
+  { max: 40,       pret: 2100 },
+  { max: 50,       pret: 2200 },
+  { max: 60,       pret: 2400 },
+  { max: 70,       pret: 2500 },
+  { max: 80,       pret: 2600 },
+  { max: 90,       pret: 2700 },
+  { max: 100,      pret: 2800 },
+  { max: 110,      pret: 3000 },
+  { max: 120,      pret: 3100 },
+  { max: 130,      pret: 3200 },
+  { max: 140,      pret: 3300 },
+  { max: 150,      pret: 3400 },
+  { max: 160,      pret: 3600 },
+  { max: 170,      pret: 3700 },
+  { max: 180,      pret: 3800 },
+  { max: 190,      pret: 3900 },
+  { max: 200,      pret: 4000 },
+  { max: 210,      pret: 4100 },
+  { max: 220,      pret: 4200 },
+  { max: 230,      pret: 4300 },
+  { max: 240,      pret: 4400 },
+  { max: 250,      pret: 4500 },
+  { max: Infinity, pret: 4700 },
+];
+
+// Prețuri de bază la București (fără transport) — Sheet Standard
+const BAZA_BOTEZ_6 = { fara: 1850, cu: 2200 };
 const BAZA_EVENIMENT = {
-  'Botez': null,
-  'Mot': 900,
-  'Mot + tava': 1200,
-  'Nunta': 1800,
-  'Nunta + instr.': 2500,
-  'Nuntez': 1800,
+  // [event]: { 4: preț_4zane, 6: preț_6zane }
+  'Mot':        { 4:  900, 6:  900 },
+  'Mot + tava': { 4: 1200, 6: 1200 },
+  'Nunta':      { 4: 2000, 6: 2600 },
+  'Nunta + instr.': { 4: 2000, 6: 3000 },
+  'Nuntez':     { 4: 1400, 6: 2400 },
 };
 
 function calcTarif() {
@@ -766,19 +796,27 @@ function calcTarif() {
     return;
   }
 
-  const tabel = TARIFE[zane];
-  const rand = tabel.find(r => km <= r.max);
-  const kmPret = rand ? rand.pret : tabel[tabel.length - 1].pret;
+  // Preț Botez 4 zâne la distanța km (tabel principal)
+  const rand4 = TARIFE[4].find(r => km <= r.max);
+  const kmPret4 = rand4 ? rand4.pret : TARIFE[4][TARIFE[4].length - 1].pret;
 
-  let baza;
   if (tipEv === 'Botez') {
-    baza = kmPret;
+    if (zane === 4) {
+      if (cuVioara) {
+        const rv = TARIFE_VIOARA.find(r => km <= r.max);
+        tarifBaza = rv ? rv.pret : TARIFE_VIOARA[TARIFE_VIOARA.length - 1].pret;
+      } else {
+        tarifBaza = kmPret4;
+      }
+    } else { // 6 zâne Botez
+      const transport = kmPret4 - 1200;
+      tarifBaza = (cuVioara ? BAZA_BOTEZ_6.cu : BAZA_BOTEZ_6.fara) + transport;
+    }
   } else {
-    const transportExtra = kmPret - BAZA_ZANE[zane];
-    baza = BAZA_EVENIMENT[tipEv] + transportExtra;
+    const transport = kmPret4 - 1200;
+    const baza = (BAZA_EVENIMENT[tipEv] || {})[zane] || (BAZA_EVENIMENT[tipEv] || {})[4] || 0;
+    tarifBaza = baza + transport + (cuVioara ? 600 : 0);
   }
-
-  tarifBaza = baza + (cuVioara ? 600 : 0);
   let tarifFinal = tarifBaza - reducere;
 
   const tipLabel = tipEv === 'Botez' ? `Botez · ${zane} zâne` : `${tipEv} · ${zane} zâne`;
