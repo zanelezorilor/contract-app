@@ -301,7 +301,7 @@
       </div>
       <div>
         <label>Data nașterii</label>
-        <input id="dataNastere" type="text" placeholder="ZZ.LL.AAAA">
+        <input id="dataNastere" type="date">
       </div>
       <div class="full">
         <label>Adresă domiciliu</label>
@@ -331,15 +331,15 @@
     <div class="grid-3">
       <div>
         <label>Nr. contract *</label>
-        <input id="nrContract" type="text" placeholder="ex: 26">
+        <input id="nrContract" type="text" placeholder="ex: 2026.07.0001" style="font-family:monospace;font-weight:600;letter-spacing:0.5px">
       </div>
       <div>
         <label>Data contractului *</label>
-        <input id="dataContract" type="text" placeholder="ZZ.LL.2026">
+        <input id="dataContract" type="date">
       </div>
       <div>
         <label>Data evenimentului *</label>
-        <input id="dataEveniment" type="text" placeholder="ZZ.LL.2026">
+        <input id="dataEveniment" type="date">
       </div>
     </div>
   </div>
@@ -406,7 +406,7 @@
       </div>
       <div>
         <label>Data scadenței plății</label>
-        <input id="dataPlata" type="text" placeholder="ZZ.LL.2026">
+        <input id="dataPlata" type="date">
       </div>
       <div>
         <label>OBS (coloana E în Excel)</label>
@@ -851,19 +851,25 @@ function calcTarif() {
 }
 
 // ─── PREVIEW TEXT ─────────────────────────────────────────────────────────────
+function formatData(val) {
+  if (!val) return 'ZZ.LL.AAAA';
+  const [y, m, d] = val.split('-');
+  return `${d}.${m}.${y}`;
+}
+
 function getFormData() {
   return {
     nr: document.getElementById('nrContract').value || 'XX',
-    dataContract: document.getElementById('dataContract').value || 'ZZ.LL.2026',
+    dataContract: formatData(document.getElementById('dataContract').value),
     numeBenef: document.getElementById('numeBeneficiar').value || '...',
     adresaBenef: document.getElementById('adresaBeneficiar').value || '...',
-    dataNastere: document.getElementById('dataNastere').value || 'ZZ.LL.AAAA',
-    dataEveniment: document.getElementById('dataEveniment').value || 'ZZ.LL.2026',
+    dataNastere: formatData(document.getElementById('dataNastere').value),
+    dataEveniment: formatData(document.getElementById('dataEveniment').value),
     locatie: document.getElementById('locatieEveniment').value || '...',
     tipEveniment: document.getElementById('tipEveniment').value,
     concept: document.getElementById('concept').value,
     valoare: document.getElementById('valoareContract').value || '...',
-    dataPlata: document.getElementById('dataPlata').value || 'ZZ.LL.2026',
+    dataPlata: formatData(document.getElementById('dataPlata').value),
     obs: document.getElementById('obsContract').value || '',
     obs2: document.getElementById('obs2Contract').value || '',
   };
@@ -1047,6 +1053,54 @@ const DRIVE_FOLDER_ID = '1cVoHxmqG3wPXaVV0Wa4aMou3tgFagIQk';
 let driveToken = null;
 let driveTokenClient = null;
 
+function genNrContract(seq) {
+  const azi = new Date();
+  const an = azi.getFullYear();
+  const luna = String(azi.getMonth() + 1).padStart(2, '0');
+  const nr = String(seq).padStart(4, '0');
+  return `${an}.${luna}.${nr}`;
+}
+
+async function autoNrContract() {
+  try {
+    const nrField = document.getElementById('nrContract');
+    if (nrField.value) return;
+    let fileId = localStorage.getItem('sv_excel_id');
+    if (!fileId) {
+      const gasit = await cautaFisierDrive(EXCEL_FILENAME);
+      if (!gasit) {
+        nrField.value = genNrContract(1);
+        updatePreview();
+        return;
+      }
+      fileId = gasit.id;
+      localStorage.setItem('sv_excel_id', fileId);
+    }
+    const buf = await descarcaFisierDrive(fileId);
+    const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    let maxSeq = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const val = String(rows[i][0] || '');
+      // suportă format nou 2026.07.0001 și format vechi numeric
+      const parts = val.split('.');
+      const seq = parseInt(parts.length === 3 ? parts[2] : val);
+      if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+    }
+    const urmator = genNrContract(maxSeq + 1);
+    nrField.value = urmator;
+    setStatus('driveStatus', `✓ Conectat! Nr. contract propus automat: ${urmator}`, true);
+    const dcField = document.getElementById('dataContract');
+    if (!dcField.value) {
+      dcField.value = new Date().toISOString().slice(0, 10);
+    }
+    updatePreview();
+  } catch(e) {
+    // silențios — auto-increment e opțional
+  }
+}
+
 function conectareDrive() {
   if (!window.google?.accounts?.oauth2) {
     setStatus('driveStatus', '⚠ Se încarcă Google Identity... încearcă din nou în 2 secunde.', false);
@@ -1063,6 +1117,7 @@ function conectareDrive() {
         document.getElementById('btnDrive').style.background = '#d1fae5';
         document.getElementById('btnDrive').style.color = '#065f46';
         setStatus('driveStatus', '✓ Conectat! Fișierele se vor salva automat în Drive.', true);
+        autoNrContract();
       },
     });
   }
@@ -1301,6 +1356,11 @@ document.addEventListener('change', updatePreview);
 
 // Inițializare la load
 schimbaTipEv();
+// Data contractului = azi (implicit)
+(function() {
+  const dc = document.getElementById('dataContract');
+  if (!dc.value) dc.value = new Date().toISOString().slice(0, 10);
+})();
 
 // ─── PWA ─────────────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
