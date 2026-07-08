@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SoulVibes – Generator Contracte 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SoulVibes">
+<meta name="theme-color" content="#6d28d9">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -274,7 +280,12 @@
       <div class="header-sub">Zanele Zorilor · 2026</div>
     </div>
   </div>
-  <button class="header-logout" onclick="doLogout()">Ieșire</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button id="btnInstall" onclick="instaleaza()" style="display:none;padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:600;cursor:pointer;backdrop-filter:blur(4px)">
+      📲 Instalează
+    </button>
+    <button class="header-logout" onclick="doLogout()">Ieșire</button>
+  </div>
 </header>
 
 <div class="container">
@@ -1290,6 +1301,31 @@ document.addEventListener('change', updatePreview);
 
 // Inițializare la load
 schimbaTipEv();
+
+// ─── PWA ─────────────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/contract-app/sw.js');
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btnInstall').style.display = 'block';
+});
+
+function instaleaza() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('btnInstall').style.display = 'none';
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('btnInstall').style.display = 'none';
+});
 </script>
 
 <!-- Input ascuns pentru upload Excel -->
