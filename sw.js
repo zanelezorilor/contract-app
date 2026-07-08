@@ -1,7 +1,13 @@
-const CACHE = 'soulvibes-v1';
+const CACHE = 'soulvibes-v3';
 const ASSETS = [
   '/contract-app/',
   '/contract-app/index.html',
+  '/contract-app/icon-192.png',
+  '/contract-app/icon-512.png',
+  '/contract-app/favicon.ico',
+  '/contract-app/favicon-32.png',
+  '/contract-app/apple-touch-icon.png',
+  '/contract-app/manifest.json',
 ];
 
 self.addEventListener('install', e => {
