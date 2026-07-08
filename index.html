@@ -720,7 +720,7 @@ function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value;
   if (AUTH_USERS[u] && AUTH_USERS[u] === p) {
-    sessionStorage.setItem('sv_auth', '1');
+    localStorage.setItem('sv_auth', '1');
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('loginErr').style.display = 'none';
   } else {
@@ -731,14 +731,14 @@ function doLogin() {
 }
 
 function doLogout() {
-  sessionStorage.removeItem('sv_auth');
+  localStorage.removeItem('sv_auth');
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginScreen').classList.remove('hidden');
 }
 
 (function checkAuth() {
-  if (!sessionStorage.getItem('sv_auth')) {
+  if (!localStorage.getItem('sv_auth')) {
     document.getElementById('loginScreen').classList.remove('hidden');
   } else {
     document.getElementById('loginScreen').classList.add('hidden');
