@@ -734,6 +734,11 @@ function doLogout() {
     document.getElementById('loginScreen').classList.remove('hidden');
   } else {
     document.getElementById('loginScreen').classList.add('hidden');
+    // Restaurează token Drive din sesiunea curentă dacă există
+    const savedToken = sessionStorage.getItem('sv_drive_token');
+    if (savedToken) {
+      setTimeout(() => marcheazaDriveConectat(savedToken), 500);
+    }
   }
 })();
 
@@ -1093,7 +1098,36 @@ async function autoNrContract() {
   }
 }
 
+function eStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function marcheazaDriveConectat(token) {
+  driveToken = token;
+  sessionStorage.setItem('sv_drive_token', token);
+  const btn = document.getElementById('btnDrive');
+  btn.textContent = '✓ Google Drive conectat';
+  btn.style.background = '#d1fae5';
+  btn.style.color = '#065f46';
+  btn.style.border = '1.5px solid #6ee7b7';
+  setStatus('driveStatus', '✓ Conectat! Fișierele se vor salva automat în Drive.', true);
+  autoNrContract();
+}
+
 function conectareDrive() {
+  // Dacă suntem în PWA standalone pe desktop, deschidem în browser normal
+  if (eStandalone() && !navigator.userAgent.includes('Mobile')) {
+    const url = 'https://zanelezorilor.github.io/contract-app/';
+    setStatus('driveStatus', '⚠ Conectarea la Drive funcționează doar din browser. Apasă OK pentru a deschide în Chrome.', false);
+    setTimeout(() => {
+      if (confirm('Conectarea la Google Drive necesită browserul Chrome (nu app-ul instalat).\n\nApasă OK pentru a deschide aplicația în browser.')) {
+        window.open(url, '_blank');
+      }
+    }, 100);
+    return;
+  }
+
   if (!window.google?.accounts?.oauth2) {
     setStatus('driveStatus', '⚠ Se încarcă Google Identity... încearcă din nou în 2 secunde.', false);
     return;
@@ -1104,12 +1138,7 @@ function conectareDrive() {
       scope: DRIVE_SCOPE,
       callback: (resp) => {
         if (resp.error) { setStatus('driveStatus', '⚠ Autentificare eșuată: ' + resp.error, false); return; }
-        driveToken = resp.access_token;
-        document.getElementById('btnDrive').textContent = '✓ Google Drive conectat';
-        document.getElementById('btnDrive').style.background = '#d1fae5';
-        document.getElementById('btnDrive').style.color = '#065f46';
-        setStatus('driveStatus', '✓ Conectat! Fișierele se vor salva automat în Drive.', true);
-        autoNrContract();
+        marcheazaDriveConectat(resp.access_token);
       },
     });
   }
